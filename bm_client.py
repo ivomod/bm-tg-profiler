@@ -46,9 +46,9 @@ class BrandMeisterClient:
             group_slot = group['slot']
             url = f"{self.BASE_URL}/device/{self.device_id}/talkgroup/{group_slot}/{group_id}"
             response = requests.delete(url, headers=self.headers)
-            logger.info(f"Deleted static group {group_id} on slot {group_slot}.")
             if response.status_code != 200:
                 raise Exception(f"Failed to delete static group {group}: {response.status_code} - {response.text}")
+            logger.info(f"Deleted static group {group_id} on slot {group_slot}.")
 
     def set_static_groups(self, static_groups):
         """Set new static groups for the device."""
@@ -56,6 +56,6 @@ class BrandMeisterClient:
         for group in static_groups:
             payload = {"group": group, "slot": self.DEFAULT_SLOT}
             response = requests.post(url, headers={**self.headers, "Content-Type": "application/json"}, json=payload)
-            logger.info(f"Added static group {group} to slot {self.DEFAULT_SLOT}.")
             if response.status_code != 200:
                 raise Exception(f"Failed to add static group {group}: {response.status_code} - {response.text}")
+            logger.info(f"Added static group {group} to slot {self.DEFAULT_SLOT}.")
