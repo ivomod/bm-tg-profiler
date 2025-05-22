@@ -37,6 +37,15 @@ class BrandMeisterClient:
         else:
             raise Exception(f"Failed to drop the current call: {response.status_code} - {response.text}")
 
+    def reset_connection(self):
+        """Reset the BrandMeister connection for the device."""
+        url = f"{self.BASE_URL}/device/{self.device_id}/action/removeContext"
+        response = requests.get(url, headers=self.headers)
+        if response.status_code == 200:
+            logger.info("Successfully reset connection.")
+        else:
+            raise Exception(f"Failed to reset connection: {response.status_code} - {response.text}")
+
     def delete_static_groups(self):
         """Delete all existing static groups for the device."""
         static_groups = self.get_static_groups()

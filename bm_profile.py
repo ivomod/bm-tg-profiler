@@ -26,6 +26,7 @@ def main():
         client.delete_static_groups()
         client.drop_dynamic_groups()
         client.drop_current_call()
+        client.reset_connection()
         client.set_static_groups(static_groups)
     except Exception as e:
         print(e)
