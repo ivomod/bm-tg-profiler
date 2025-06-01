@@ -23,6 +23,7 @@ During the profile switch process, the script removes all calls and dynamic grou
 ## Requirements
 - Python 3.8 or higher
 - `pip` for dependency management
+- BM token (API key) - see [BrandMeister User API keys – BrandMeister DMR News](https://news.brandmeister.network/introducing-user-api-keys/)
 
 ## Installation
 1. Clone the repository:
