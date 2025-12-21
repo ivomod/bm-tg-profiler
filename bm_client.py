@@ -1,4 +1,5 @@
 import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from logger import logger
 
 class BrandMeisterClient:
@@ -46,25 +47,66 @@ class BrandMeisterClient:
         else:
             raise Exception(f"Failed to reset connection: {response.status_code} - {response.text}")
 
+    def _delete_single_group(self, group):
+        """Delete a single static group."""
+        group_id = group['talkgroup']
+        group_slot = group['slot']
+        url = f"{self.BASE_URL}/device/{self.device_id}/talkgroup/{group_slot}/{group_id}"
+        response = requests.delete(url, headers=self.headers)
+        if response.status_code != 200:
+            raise Exception(f"Failed to delete static group {group}: {response.status_code} - {response.text}")
+        logger.info(f"Deleted static group {group_id} on slot {group_slot}.")
+        return group_id
+
     def delete_static_groups(self):
-        """Delete all existing static groups for the device."""
+        """Delete all existing static groups for the device using multiple threads."""
         static_groups = self.get_static_groups()
         logger.info(f"Deleting {len(static_groups)} static groups.")
-        for group in static_groups:
-            group_id = group['talkgroup']
-            group_slot = group['slot']
-            url = f"{self.BASE_URL}/device/{self.device_id}/talkgroup/{group_slot}/{group_id}"
-            response = requests.delete(url, headers=self.headers)
-            if response.status_code != 200:
-                raise Exception(f"Failed to delete static group {group}: {response.status_code} - {response.text}")
-            logger.info(f"Deleted static group {group_id} on slot {group_slot}.")
+
+        if not static_groups:
+            return
+
+        errors = []
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = {executor.submit(self._delete_single_group, group): group for group in static_groups}
+            for future in as_completed(futures):
+                group = futures[future]
+                try:
+                    future.result()
+                except Exception as e:
+                    logger.error(f"Error deleting group {group}: {e}")
+                    errors.append((group, e))
+
+        logger.info("All threads completed.")
+        if errors:
+            raise Exception(f"Failed to delete {len(errors)} group(s): {errors}")
+
+    def _add_single_group(self, group):
+        """Add a single static group."""
+        url = f"{self.BASE_URL}/device/{self.device_id}/talkgroup"
+        payload = {"group": group, "slot": self.DEFAULT_SLOT}
+        response = requests.post(url, headers={**self.headers, "Content-Type": "application/json"}, json=payload)
+        if response.status_code != 200:
+            raise Exception(f"Failed to add static group {group}: {response.status_code} - {response.text}")
+        logger.info(f"Added static group {group} to slot {self.DEFAULT_SLOT}.")
+        return group
 
     def set_static_groups(self, static_groups):
-        """Set new static groups for the device."""
-        url = f"{self.BASE_URL}/device/{self.device_id}/talkgroup"
-        for group in static_groups:
-            payload = {"group": group, "slot": self.DEFAULT_SLOT}
-            response = requests.post(url, headers={**self.headers, "Content-Type": "application/json"}, json=payload)
-            if response.status_code != 200:
-                raise Exception(f"Failed to add static group {group}: {response.status_code} - {response.text}")
-            logger.info(f"Added static group {group} to slot {self.DEFAULT_SLOT}.")
+        """Set new static groups for the device using multiple threads."""
+        if not static_groups:
+            return
+
+        errors = []
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = {executor.submit(self._add_single_group, group): group for group in static_groups}
+            for future in as_completed(futures):
+                group = futures[future]
+                try:
+                    future.result()
+                except Exception as e:
+                    logger.error(f"Error adding group {group}: {e}")
+                    errors.append((group, e))
+
+        logger.info("All threads completed.")
+        if errors:
+            raise Exception(f"Failed to add {len(errors)} group(s): {errors}")
