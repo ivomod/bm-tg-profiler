@@ -25,7 +25,7 @@ class BrandMeisterClient:
         url = f"{self.BASE_URL}/device/{self.device_id}/action/dropDynamicGroups/{self.DEFAULT_SLOT}"
         response = requests.get(url, headers=self.headers)
         if response.status_code == 200:
-            logger.info("Successfully dropped all dynamic groups.")
+            logger.info("🗑️ Successfully dropped all dynamic groups.")
         else:
             raise Exception(f"Failed to drop dynamic groups: {response.status_code} - {response.text}")
 
@@ -34,7 +34,7 @@ class BrandMeisterClient:
         url = f"{self.BASE_URL}/device/{self.device_id}/action/dropCallRoute/{self.DEFAULT_SLOT}"
         response = requests.get(url, headers=self.headers)
         if response.status_code == 200:
-            logger.info("Successfully dropped the current call.")
+            logger.info("📞 Successfully dropped the current call.")
         else:
             raise Exception(f"Failed to drop the current call: {response.status_code} - {response.text}")
 
@@ -43,7 +43,7 @@ class BrandMeisterClient:
         url = f"{self.BASE_URL}/device/{self.device_id}/action/removeContext"
         response = requests.get(url, headers=self.headers)
         if response.status_code == 200:
-            logger.info("Successfully reset connection.")
+            logger.info("🔄 Successfully reset connection.")
         else:
             raise Exception(f"Failed to reset connection: {response.status_code} - {response.text}")
 
@@ -55,13 +55,13 @@ class BrandMeisterClient:
         response = requests.delete(url, headers=self.headers)
         if response.status_code != 200:
             raise Exception(f"Failed to delete static group {group}: {response.status_code} - {response.text}")
-        logger.info(f"Deleted static group {group_id} on slot {group_slot}.")
+        logger.info(f"🗑️ Deleted static group {group_id} on slot {group_slot}.")
         return group_id
 
     def delete_static_groups(self):
         """Delete all existing static groups for the device using multiple threads."""
         static_groups = self.get_static_groups()
-        logger.info(f"Deleting {len(static_groups)} static groups.")
+        logger.info(f"🧹 Deleting {len(static_groups)} static groups.")
 
         if not static_groups:
             return
@@ -77,7 +77,7 @@ class BrandMeisterClient:
                     logger.error(f"Error deleting group {group}: {e}")
                     errors.append((group, e))
 
-        logger.info("All threads completed.")
+        logger.info("✅ All delete threads completed.")
         if errors:
             raise Exception(f"Failed to delete {len(errors)} group(s): {errors}")
 
@@ -88,7 +88,7 @@ class BrandMeisterClient:
         response = requests.post(url, headers={**self.headers, "Content-Type": "application/json"}, json=payload)
         if response.status_code != 200:
             raise Exception(f"Failed to add static group {group}: {response.status_code} - {response.text}")
-        logger.info(f"Added static group {group} to slot {self.DEFAULT_SLOT}.")
+        logger.info(f"➕ Added static group {group} to slot {self.DEFAULT_SLOT}.")
         return group
 
     def set_static_groups(self, static_groups):
@@ -107,6 +107,6 @@ class BrandMeisterClient:
                     logger.error(f"Error adding group {group}: {e}")
                     errors.append((group, e))
 
-        logger.info("All threads completed.")
+        logger.info("✅ All add threads completed.")
         if errors:
             raise Exception(f"Failed to add {len(errors)} group(s): {errors}")

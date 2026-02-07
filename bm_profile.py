@@ -1,4 +1,5 @@
 from bm_client import BrandMeisterClient
+from logger import logger
 import argparse
 import json
 import sys
@@ -7,9 +8,11 @@ def load_profile(profile_file):
     """Load static groups from the profile JSON file."""
     try:
         with open(profile_file, 'r') as file:
-            return json.load(file).get("static_groups", [])
+            profile = json.load(file).get("static_groups", [])
+            logger.info(f"📄 Loaded profile with {len(profile)} static groups")
+            return profile
     except Exception as e:
-        print(f"Error loading profile file: {e}")
+        logger.error(f"Error loading profile file: {e}")
         sys.exit(1)
 
 def main():
@@ -28,8 +31,9 @@ def main():
         client.drop_current_call()
         client.reset_connection()
         client.set_static_groups(static_groups)
+        logger.success("🎉 Profile successfully applied!")
     except Exception as e:
-        print(e)
+        logger.error(str(e))
         sys.exit(1)
 
 if __name__ == "__main__":
