@@ -72,20 +72,25 @@ During the profile switch process, the script removes all calls and dynamic grou
 4. Example run:
    ```bash
    $ venv/bin/python bm_profile.py --token xxx --device_id 123 --profile_file ./example_profile.json
-   2025-06-01 10:47:57,909 - bm-tg-profiler - INFO - Deleting 9 static groups.
-   2025-06-01 10:47:58,396 - bm-tg-profiler - INFO - Deleted static group 260 on slot 0.
-   2025-06-01 10:47:58,886 - bm-tg-profiler - INFO - Deleted static group 2600 on slot 0.
-   2025-06-01 10:47:59,381 - bm-tg-profiler - INFO - Deleted static group 2609 on slot 0.
-   2025-06-01 10:47:59,944 - bm-tg-profiler - INFO - Deleted static group 26013 on slot 0.
-   2025-06-01 10:48:00,422 - bm-tg-profiler - INFO - Deleted static group 26040 on slot 0.
-   2025-06-01 10:48:00,902 - bm-tg-profiler - INFO - Deleted static group 26077 on slot 0.
-   2025-06-01 10:48:01,396 - bm-tg-profiler - INFO - Deleted static group 26094 on slot 0.
-   2025-06-01 10:48:01,903 - bm-tg-profiler - INFO - Deleted static group 260014 on slot 0.
-   2025-06-01 10:48:02,397 - bm-tg-profiler - INFO - Deleted static group 260019 on slot 0.
-   2025-06-01 10:48:02,753 - bm-tg-profiler - INFO - Successfully dropped all dynamic groups.
-   2025-06-01 10:48:03,102 - bm-tg-profiler - INFO - Successfully dropped the current call.
-   2025-06-01 10:48:03,449 - bm-tg-profiler - INFO - Successfully reset connection.
-   2025-06-01 10:48:04,190 - bm-tg-profiler - INFO - Added static group 26077 to slot 0.
+   ℹ️ 📄 Loaded profile with 1 static groups
+   ℹ️ 🧹 Deleting 10 static groups.
+   ℹ️ 🗑️ Deleted static group 260014 on slot 0.
+   ℹ️ 🗑️ Deleted static group 26040 on slot 0.
+   ℹ️ 🗑️ Deleted static group 26013 on slot 0.
+   ℹ️ 🗑️ Deleted static group 260 on slot 0.
+   ℹ️ 🗑️ Deleted static group 260019 on slot 0.
+   ℹ️ 🗑️ Deleted static group 2609 on slot 0.
+   ℹ️ 🗑️ Deleted static group 2600 on slot 0.
+   ℹ️ 🗑️ Deleted static group 26077 on slot 0.
+   ℹ️ 🗑️ Deleted static group 26094 on slot 0.
+   ℹ️ 🗑️ Deleted static group 2603351 on slot 0.
+   ℹ️ ✅ All delete threads completed.
+   ℹ️ 🗑️ Successfully dropped all dynamic groups.
+   ℹ️ 📞 Successfully dropped the current call.
+   ℹ️ 🔄 Successfully reset connection.
+   ℹ️ ➕ Added static group 26013 to slot 0.
+   ℹ️ ✅ All add threads completed.
+   ✨ 🎉 Profile successfully applied!
    ```
 
 ## License
