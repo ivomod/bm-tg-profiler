@@ -46,7 +46,7 @@ During the profile switch process, the script removes all calls and dynamic grou
 ## Usage
 1. Run the script:
    ```bash
-   python main.py
+   python bm_profile.py
    ```
 
 2. Follow the on-screen instructions to manage static group profiles:
