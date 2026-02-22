@@ -19,8 +19,8 @@ def main():
     parser = argparse.ArgumentParser(description="Manage static groups for BrandMeister.")
     parser.add_argument("--device_id", required=True, help="The device ID of the repeater.")
     parser.add_argument("--token", required=True, help="The BrandMeister API token.")
-    parser.add_argument("--profile_file", required=True, help="Path to the JSON profile file containing static groups.")
     parser.add_argument("--slot", type=int, default=0, help="The time slot to use (default: 0).")
+    parser.add_argument("--profile_file", required=True, help="Path to the JSON profile file containing static groups.")
     parser.add_argument("--plain-print", action="store_true", default=False, help="Disable colors and emojis in output.")
     args = parser.parse_args()
 

@@ -46,12 +46,24 @@ During the profile switch process, the script removes all calls and dynamic grou
 ## Usage
 1. Run the script:
    ```bash
-   python bm_profile.py
+   python bm_profile.py -h
    ```
 
 2. Follow the on-screen instructions to manage static group profiles:
    ```
-   usage: bm_profile.py [-h] --device_id DEVICE_ID --token TOKEN --profile_file PROFILE_FILE
+   usage: bm_profile.py [-h] --device_id DEVICE_ID --token TOKEN [--slot SLOT] --profile_file PROFILE_FILE [--plain-print]
+
+   Manage static groups for BrandMeister.
+
+   options:
+   -h, --help            show this help message and exit
+   --device_id DEVICE_ID
+                           The device ID of the repeater.
+   --token TOKEN         The BrandMeister API token.
+   --slot SLOT           The time slot to use (default: 0).
+   --profile_file PROFILE_FILE
+                           Path to the JSON profile file containing static groups.
+   --plain-print         Disable colors and emojis in output
    ```
 
 3. Example profile file:
