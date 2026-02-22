@@ -105,5 +105,11 @@ During the profile switch process, the script removes all calls and dynamic grou
    ✨ 🎉 Profile successfully applied!
    ```
 
+## Tests
+Run the test suite with:
+```bash
+python3 -m pytest -v
+```
+
 ## License
 This project is licensed under the MIT License. See the `LICENSE` file for details.
