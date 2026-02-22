@@ -21,7 +21,10 @@ def main():
     parser.add_argument("--token", required=True, help="The BrandMeister API token.")
     parser.add_argument("--profile_file", required=True, help="Path to the JSON profile file containing static groups.")
     parser.add_argument("--slot", type=int, default=0, help="The time slot to use (default: 0).")
+    parser.add_argument("--plain-print", action="store_true", default=False, help="Disable colors and emojis in output.")
     args = parser.parse_args()
+
+    logger.plain = args.plain_print
 
     static_groups = load_profile(args.profile_file)
     client = BrandMeisterClient(args.device_id, args.token, slot=args.slot)
