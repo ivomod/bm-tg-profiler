@@ -4,11 +4,11 @@ from logger import logger
 
 class BrandMeisterClient:
     BASE_URL = "https://api.brandmeister.network/v2"
-    DEFAULT_SLOT = 0
 
-    def __init__(self, device_id, token):
+    def __init__(self, device_id, token, slot=0):
         self.device_id = device_id
         self.token = token
+        self.slot = slot
         self.headers = {"Authorization": f"Bearer {self.token}"}
 
     def get_static_groups(self):
@@ -22,7 +22,7 @@ class BrandMeisterClient:
 
     def drop_dynamic_groups(self):
         """Drop all dynamic groups for the device."""
-        url = f"{self.BASE_URL}/device/{self.device_id}/action/dropDynamicGroups/{self.DEFAULT_SLOT}"
+        url = f"{self.BASE_URL}/device/{self.device_id}/action/dropDynamicGroups/{self.slot}"
         response = requests.get(url, headers=self.headers)
         if response.status_code == 200:
             logger.info("🗑️ Successfully dropped all dynamic groups.")
@@ -31,7 +31,7 @@ class BrandMeisterClient:
 
     def drop_current_call(self):
         """Drop the current call for the device."""
-        url = f"{self.BASE_URL}/device/{self.device_id}/action/dropCallRoute/{self.DEFAULT_SLOT}"
+        url = f"{self.BASE_URL}/device/{self.device_id}/action/dropCallRoute/{self.slot}"
         response = requests.get(url, headers=self.headers)
         if response.status_code == 200:
             logger.info("📞 Successfully dropped the current call.")
@@ -84,11 +84,11 @@ class BrandMeisterClient:
     def _add_single_group(self, group):
         """Add a single static group."""
         url = f"{self.BASE_URL}/device/{self.device_id}/talkgroup"
-        payload = {"group": group, "slot": self.DEFAULT_SLOT}
+        payload = {"group": group, "slot": self.slot}
         response = requests.post(url, headers={**self.headers, "Content-Type": "application/json"}, json=payload)
         if response.status_code != 200:
             raise Exception(f"Failed to add static group {group}: {response.status_code} - {response.text}")
-        logger.info(f"➕ Added static group {group} to slot {self.DEFAULT_SLOT}.")
+        logger.info(f"➕ Added static group {group} to slot {self.slot}.")
         return group
 
     def set_static_groups(self, static_groups):

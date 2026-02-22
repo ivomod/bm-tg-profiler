@@ -20,10 +20,11 @@ def main():
     parser.add_argument("--device_id", required=True, help="The device ID of the repeater.")
     parser.add_argument("--token", required=True, help="The BrandMeister API token.")
     parser.add_argument("--profile_file", required=True, help="Path to the JSON profile file containing static groups.")
+    parser.add_argument("--slot", type=int, default=0, help="The time slot to use (default: 0).")
     args = parser.parse_args()
 
     static_groups = load_profile(args.profile_file)
-    client = BrandMeisterClient(args.device_id, args.token)
+    client = BrandMeisterClient(args.device_id, args.token, slot=args.slot)
 
     try:
         client.delete_static_groups()
