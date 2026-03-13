@@ -846,7 +846,7 @@
     try {
       const r = await req('GET', `/device/${deviceId}/talkgroup`, null, token);
       const all = await r.json();
-      const groups = all.filter(g => g.slot === slot);
+      const groups = all.filter(g => parseInt(g.slot) === slot);
       const card = document.getElementById('currentCard');
       const content = document.getElementById('currentContent');
       document.getElementById('currentCard').querySelector('.card-title').textContent = `📡 Current Static Groups — Slot ${slot}`;
@@ -896,7 +896,7 @@
       log('🧹 Fetching existing static groups…', 'info');
       const r = await req('GET', `/device/${deviceId}/talkgroup`, null, token);
       const existing = await r.json();
-      const toDelete = existing.filter(g => g.slot === slot);
+      const toDelete = existing.filter(g => parseInt(g.slot) === slot);
       const skipped  = existing.length - toDelete.length;
       log(`🗑️  Deleting ${toDelete.length} group(s) on slot ${slot}${skipped ? ` (${skipped} on other slot(s) left untouched)` : ''}…`, 'info');
       await Promise.all(toDelete.map(async g => {
