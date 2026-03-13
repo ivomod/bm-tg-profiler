@@ -119,7 +119,7 @@ No installation required — it runs entirely in your browser and calls the Bran
 
 ## Features
 
-- **Connection Settings** — Enter your Device ID, API token, and time slot. All values are persisted in browser `localStorage` and restored on every visit.
+- **Connection Settings** — Enter your Device ID, API token, and time slot. All values are persisted in browser `localStorage` and restored on every visit. Previously used Device IDs are saved in a dropdown for quick selection; individual entries can be removed with the 🗑️ button. Default time slot is **Slot 1**.
 - **Profile Manager** — Create and manage multiple named profiles, each containing a list of talk group numbers. Profiles are stored in `localStorage` and survive page reloads.
 - **Dark / Light mode** — Toggle between dark and light themes using the button in the top-right corner of the page. The preference is saved in `localStorage` and applied automatically on the next visit.
 - **One-click Apply** — Selecting a profile and clicking Apply runs the full 5-step sequence with a live progress tracker and timestamped activity log:
@@ -135,7 +135,7 @@ No installation required — it runs entirely in your browser and calls the Bran
 ## Usage
 
 1. Open **https://ivomod.github.io/bm-tg-profiler/** in your browser.
-2. Fill in **Device ID**, **API Token**, and **Time Slot** in the Connection Settings panel. These are saved automatically to `localStorage`.
+2. Fill in **Device ID** (or pick a previously used one from the dropdown), **API Token**, and **Time Slot** in the Connection Settings panel. Click **Save Settings** — the Device ID is added to the saved list automatically.
 3. Create a profile by clicking **+ New** in the Profiles panel and adding talk group numbers.
 4. Click **▶ Apply** next to a profile (or select it and click **Apply Profile**) to push it to your device.
 

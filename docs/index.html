@@ -357,7 +357,12 @@
       <div class="card-title">⚙️ Connection Settings</div>
       <div class="form-group">
         <label>Device ID</label>
-        <input id="deviceId" type="text" placeholder="e.g. 123456" />
+        <div class="add-row" style="margin-bottom:0.4rem">
+          <select id="deviceSelect" onchange="onDeviceSelect()" style="flex:1"></select>
+          <button class="btn btn-ghost btn-sm" onclick="removeSelectedDevice()" title="Remove selected device from list">🗑️</button>
+        </div>
+        <input id="deviceId" type="text" placeholder="Or enter a new device ID…" />
+        <div class="help">Selecting a saved device fills the field. New IDs are saved on Save Settings.</div>
       </div>
       <div class="form-group">
         <label>API Token</label>
@@ -370,7 +375,6 @@
       <div class="form-group">
         <label>Time Slot</label>
         <select id="slot">
-          <option value="0">Slot 0 (default / simplex)</option>
           <option value="1">Slot 1</option>
           <option value="2">Slot 2</option>
         </select>
@@ -486,6 +490,7 @@
   const API = 'https://api.brandmeister.network/v2';
 
   let profiles = [];
+  let savedDevices = [];
   let selectedId = null;
   let editingId = null;
   let tempGroups = [];
@@ -506,10 +511,12 @@
   // ── Init ───────────────────────────────────────────────────────────────────
   function init() {
     applyTheme(localStorage.getItem('bm_theme') || 'dark');
+    savedDevices = JSON.parse(localStorage.getItem('bm_devices') || '[]');
     const s = loadSettings();
+    document.getElementById('token').value = s.token || '';
+    document.getElementById('slot').value  = s.slot  || '1';
+    renderDeviceSelect(s.deviceId || '');
     document.getElementById('deviceId').value = s.deviceId || '';
-    document.getElementById('token').value    = s.token    || '';
-    document.getElementById('slot').value     = s.slot     || '0';
     profiles = JSON.parse(localStorage.getItem('bm_profiles') || '[]');
     renderProfiles();
   }
@@ -520,20 +527,51 @@
   }
 
   function saveSettings() {
+    const deviceId = val('deviceId').trim();
+    if (deviceId && !savedDevices.includes(deviceId)) {
+      savedDevices.push(deviceId);
+      localStorage.setItem('bm_devices', JSON.stringify(savedDevices));
+      renderDeviceSelect(deviceId);
+    }
     localStorage.setItem('bm_settings', JSON.stringify({
-      deviceId: val('deviceId'),
-      token:    val('token'),
-      slot:     val('slot'),
+      deviceId,
+      token: val('token'),
+      slot:  val('slot'),
     }));
     toast('Settings saved', 'ok');
   }
 
   function getConn() {
     return {
-      deviceId: val('deviceId'),
+      deviceId: val('deviceId').trim(),
       token:    val('token'),
       slot:     parseInt(val('slot')),
     };
+  }
+
+  // ── Device dropdown ────────────────────────────────────────────────────────
+  function renderDeviceSelect(currentId = '') {
+    const sel = document.getElementById('deviceSelect');
+    sel.innerHTML = '<option value="">— Select a saved device —</option>' +
+      savedDevices.map(d =>
+        `<option value="${esc(d)}" ${d === currentId ? 'selected' : ''}>${esc(d)}</option>`
+      ).join('');
+  }
+
+  function onDeviceSelect() {
+    const v = document.getElementById('deviceSelect').value;
+    if (v) document.getElementById('deviceId').value = v;
+  }
+
+  function removeSelectedDevice() {
+    const deviceId = val('deviceId').trim() || document.getElementById('deviceSelect').value;
+    if (!deviceId) { toast('No device selected', 'err'); return; }
+    if (!savedDevices.includes(deviceId)) { toast('Device not in saved list', 'err'); return; }
+    savedDevices = savedDevices.filter(d => d !== deviceId);
+    localStorage.setItem('bm_devices', JSON.stringify(savedDevices));
+    renderDeviceSelect('');
+    document.getElementById('deviceId').value = '';
+    toast(`Removed ${deviceId} from saved devices`, 'ok');
   }
 
   function toggleToken() {
