@@ -425,6 +425,7 @@
       <div class="row-btns">
         <button class="btn btn-primary" id="applyBtn" onclick="applyProfile()" disabled>▶ Apply Profile</button>
         <button class="btn btn-secondary" onclick="fetchCurrentGroups()">🔍 View Current Groups</button>
+        <button class="btn btn-secondary" id="clearSlotBtn" onclick="clearSlot()">🗑️ Clear Slot</button>
         <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="clearLog()">Clear log</button>
       </div>
     </div>
@@ -867,10 +868,44 @@
         renderChips();
         prefetchAndRender(groups.map(g => g.talkgroup), renderChips);
       }
-      log(`✅ Found ${groups.length} static group(s) on device.`, 'success');
+      log(`✅ Found ${groups.length} static group(s) on slot ${slot}.`, 'success');
     } catch (e) {
       log(`❌ ${e.message}`, 'error');
       toast('Failed to fetch groups', 'err');
+    }
+  }
+
+  async function clearSlot() {
+    if (busy) return;
+    const { deviceId, token, slot } = getConn();
+    if (!deviceId || !token) { toast('Configure Device ID and Token first', 'err'); return; }
+
+    const r0 = await req('GET', `/device/${deviceId}/talkgroup`, null, token).catch(() => null);
+    if (!r0) { toast('Failed to fetch groups', 'err'); return; }
+    const toDelete = (await r0.json()).filter(g => parseInt(g.slot) === slot);
+
+    if (!toDelete.length) { toast(`No static groups on slot ${slot}`, 'err'); return; }
+    if (!confirm(`Remove all ${toDelete.length} static group(s) from slot ${slot} on device ${deviceId}?`)) return;
+
+    busy = true;
+    document.getElementById('clearSlotBtn').disabled = true;
+    logSep();
+    log(`🗑️ Clearing ${toDelete.length} static group(s) from slot ${slot}…`, 'info');
+    try {
+      await Promise.all(toDelete.map(async g => {
+        await req('DELETE', `/device/${deviceId}/talkgroup/${g.slot}/${g.talkgroup}`, null, token);
+        const name = tgCache[g.talkgroup]?.name;
+        log(`   — Deleted ${g.talkgroup}${name ? ` (${name})` : ''} slot ${g.slot}`, 'info');
+      }));
+      log(`✅ Cleared ${toDelete.length} static group(s) from slot ${slot}.`, 'success');
+      toast(`Slot ${slot} cleared`, 'ok');
+      fetchCurrentGroups();
+    } catch (e) {
+      log(`❌ ${e.message}`, 'error');
+      toast('Failed to clear slot', 'err');
+    } finally {
+      busy = false;
+      document.getElementById('clearSlotBtn').disabled = false;
     }
   }
 
