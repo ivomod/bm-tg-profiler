@@ -189,6 +189,11 @@
     }
     .tag-x { cursor: pointer; opacity: 0.6; font-size: 0.85rem; line-height: 1; }
     .tag-x:hover { opacity: 1; color: var(--error); }
+    .tg-name {
+      font-family: system-ui, sans-serif; font-size: 0.68rem;
+      color: var(--text-muted); font-weight: 400;
+      max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
 
     .profile-actions { display: flex; gap: 0.4rem; margin-top: 0.75rem; flex-wrap: wrap; }
     .ml-auto { margin-left: auto; }
@@ -488,13 +493,16 @@
 
 <script>
   const API = 'https://api.brandmeister.network/v2';
+  const TG_CACHE_TTL = 86400000; // 24 hours
 
   let profiles = [];
   let savedDevices = [];
+  let tgCache = {};
   let selectedId = null;
   let editingId = null;
   let tempGroups = [];
   let busy = false;
+  let fetchingNames = false;
 
   // ── Theme ──────────────────────────────────────────────────────────────────
   function applyTheme(theme) {
@@ -508,9 +516,54 @@
     applyTheme(next);
   }
 
+  // ── Talk group name cache ──────────────────────────────────────────────────
+  function loadTgCache() {
+    try { tgCache = JSON.parse(localStorage.getItem('bm_tg_names') || '{}'); }
+    catch { tgCache = {}; }
+  }
+
+  function saveTgCache() {
+    localStorage.setItem('bm_tg_names', JSON.stringify(tgCache));
+  }
+
+  async function getTgName(id) {
+    const cached = tgCache[id];
+    if (cached !== undefined && (Date.now() - cached.ts < TG_CACHE_TTL)) return cached.name;
+    try {
+      const r = await fetch(`${API}/talkgroup/${id}`, { signal: AbortSignal.timeout(5000) });
+      const name = r.ok ? ((await r.json()).Name || null) : null;
+      tgCache[id] = { name, ts: Date.now() };
+    } catch {
+      tgCache[id] = { name: null, ts: Date.now() };
+    }
+    saveTgCache();
+    return tgCache[id].name;
+  }
+
+  function tgLabel(id) {
+    const name = tgCache[id]?.name;
+    return name
+      ? `${id}<span class="tg-name" title="${esc(name)}"> · ${esc(name)}</span>`
+      : `${id}`;
+  }
+
+  async function prefetchAndRender(groups, renderFn) {
+    if (fetchingNames) return;
+    const missing = groups.filter(id => {
+      const c = tgCache[id];
+      return c === undefined || (Date.now() - c.ts > TG_CACHE_TTL);
+    });
+    if (!missing.length) return;
+    fetchingNames = true;
+    await Promise.allSettled(missing.map(getTgName));
+    fetchingNames = false;
+    renderFn();
+  }
+
   // ── Init ───────────────────────────────────────────────────────────────────
   function init() {
     applyTheme(localStorage.getItem('bm_theme') || 'dark');
+    loadTgCache();
     savedDevices = JSON.parse(localStorage.getItem('bm_devices') || '[]');
     const s = loadSettings();
     document.getElementById('token').value = s.token || '';
@@ -591,7 +644,7 @@
         <div class="profile-name">${esc(p.name)}</div>
         <div class="profile-meta">${p.groups.length} talk group${p.groups.length !== 1 ? 's' : ''}</div>
         <div class="tags">
-          ${p.groups.slice(0, 10).map(g => `<span class="tag">${g}</span>`).join('')}
+          ${p.groups.slice(0, 10).map(g => `<span class="tag">${tgLabel(g)}</span>`).join('')}
           ${p.groups.length > 10 ? `<span class="tag">+${p.groups.length - 10} more</span>` : ''}
         </div>
         <div class="profile-actions">
@@ -602,6 +655,9 @@
         </div>
       </div>
     `).join('');
+
+    const allGroups = [...new Set(profiles.flatMap(p => p.groups))];
+    prefetchAndRender(allGroups, renderProfiles);
   }
 
   function selectProfile(id) {
@@ -661,7 +717,8 @@
 
   function renderModalTags() {
     document.getElementById('modalTags').innerHTML =
-      tempGroups.map(g => `<span class="tag">${g}<span class="tag-x" onclick="removeTg(${g})">×</span></span>`).join('');
+      tempGroups.map(g => `<span class="tag">${tgLabel(g)}<span class="tag-x" onclick="removeTg(${g})">×</span></span>`).join('');
+    prefetchAndRender(tempGroups, renderModalTags);
   }
 
   function importJson() {
@@ -794,11 +851,18 @@
       if (!groups.length) {
         content.innerHTML = '<div class="empty">No static groups currently configured.</div>';
       } else {
-        content.innerHTML = `
-          <div class="help" style="margin-bottom:0.5rem">${groups.length} group(s) on device</div>
-          <div class="group-chips">
-            ${groups.map(g => `<span class="chip">${g.talkgroup} <span>s${g.slot}</span></span>`).join('')}
-          </div>`;
+        const renderChips = () => {
+          content.innerHTML = `
+            <div class="help" style="margin-bottom:0.5rem">${groups.length} group(s) on device</div>
+            <div class="group-chips">
+              ${groups.map(g => {
+                const name = tgCache[g.talkgroup]?.name;
+                return `<span class="chip">${g.talkgroup}${name ? ` <span class="tg-name" style="max-width:none"> · ${esc(name)}</span>` : ''} <span>s${g.slot}</span></span>`;
+              }).join('')}
+            </div>`;
+        };
+        renderChips();
+        prefetchAndRender(groups.map(g => g.talkgroup), renderChips);
       }
       log(`✅ Found ${groups.length} static group(s) on device.`, 'success');
     } catch (e) {
@@ -832,7 +896,8 @@
       log(`🗑️  Deleting ${existing.length} group(s)…`, 'info');
       await Promise.all(existing.map(async g => {
         await req('DELETE', `/device/${deviceId}/talkgroup/${g.slot}/${g.talkgroup}`, null, token);
-        log(`   — Deleted ${g.talkgroup} (slot ${g.slot})`, 'info');
+        const name = tgCache[g.talkgroup]?.name;
+        log(`   — Deleted ${g.talkgroup}${name ? ` (${name})` : ''} slot ${g.slot}`, 'info');
       }));
       setStep('delete', 'done');
       log(`✅ Deleted ${existing.length} static group(s).`, 'success');
@@ -860,7 +925,8 @@
       log(`➕ Adding ${profile.groups.length} group(s)…`, 'info');
       await Promise.all(profile.groups.map(async g => {
         await req('POST', `/device/${deviceId}/talkgroup`, { group: g, slot }, token);
-        log(`   + Added ${g} → slot ${slot}`, 'info');
+        const name = tgCache[g]?.name;
+        log(`   + Added ${g}${name ? ` (${name})` : ''} → slot ${slot}`, 'info');
       }));
       setStep('add', 'done');
       log(`✅ Added ${profile.groups.length} static group(s).`, 'success');
