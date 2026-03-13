@@ -380,8 +380,8 @@
       <div class="form-group">
         <label>Time Slot</label>
         <select id="slot">
-          <option value="0">Slot 0 (simplex)</option>
-          <option value="1" selected>Slot 1</option>
+          <option value="0" selected>Slot 0 (simplex)</option>
+          <option value="1">Slot 1</option>
           <option value="2">Slot 2</option>
         </select>
       </div>
@@ -568,7 +568,7 @@
     savedDevices = JSON.parse(localStorage.getItem('bm_devices') || '[]');
     const s = loadSettings();
     document.getElementById('token').value = s.token || '';
-    document.getElementById('slot').value  = s.slot  || '1';
+    document.getElementById('slot').value  = s.slot  || '0';
     renderDeviceSelect(s.deviceId || '');
     document.getElementById('deviceId').value = s.deviceId || '';
     profiles = JSON.parse(localStorage.getItem('bm_profiles') || '[]');
