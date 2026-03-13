@@ -437,7 +437,10 @@
 
     <!-- Current groups (hidden until fetched) -->
     <div class="card" id="currentCard" style="display:none">
-      <div class="card-title">📡 Current Static Groups on Device</div>
+      <div class="card-title">
+        <span id="currentCardTitle">📡 Current Static Groups on Device</span>
+        <button class="btn btn-secondary btn-sm" onclick="saveCurrentAsProfile()">💾 Save as Profile</button>
+      </div>
       <div id="currentContent"></div>
     </div>
 
@@ -506,6 +509,7 @@
   let profiles = [];
   let savedDevices = [];
   let tgCache = {};
+  let currentGroups = [];
   let selectedId = null;
   let editingId = null;
   let tempGroups = [];
@@ -883,7 +887,8 @@
       const groups = all.filter(g => parseInt(g.slot) === slot);
       const card = document.getElementById('currentCard');
       const content = document.getElementById('currentContent');
-      document.getElementById('currentCard').querySelector('.card-title').textContent = `📡 Current Static Groups — Slot ${slot}`;
+      document.getElementById('currentCardTitle').textContent = `📡 Current Static Groups — Slot ${slot}`;
+      currentGroups = groups.map(g => parseInt(g.talkgroup));
       card.style.display = 'block';
       if (!groups.length) {
         content.innerHTML = `<div class="empty">No static groups on slot ${slot}.</div>`;
@@ -906,6 +911,18 @@
       log(`❌ ${e.message}`, 'error');
       toast('Failed to fetch groups', 'err');
     }
+  }
+
+  function saveCurrentAsProfile() {
+    if (!currentGroups.length) { toast('No groups to save', 'err'); return; }
+    editingId = null;
+    tempGroups = [...currentGroups];
+    document.getElementById('modalTitle').textContent = 'New Profile from Current Groups';
+    document.getElementById('pName').value = '';
+    document.getElementById('importJson').value = '';
+    document.getElementById('newTg').value = '';
+    renderModalTags();
+    document.getElementById('modal').style.display = 'flex';
   }
 
   async function clearSlot() {
