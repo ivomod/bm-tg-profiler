@@ -145,6 +145,8 @@ No installation required — it runs entirely in your browser and calls the Bran
 
 > **Note:** Your API token is stored only in your own browser's `localStorage` and is never sent anywhere except directly to the BrandMeister API (`api.brandmeister.network`).
 
+> **Disclaimer:** The author takes no responsibility for any misconfiguration of DMR devices or BrandMeister account settings. Use at your own risk.
+
 ---
 
 ## Tests
