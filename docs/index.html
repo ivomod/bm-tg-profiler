@@ -630,9 +630,25 @@
     toast(`Removed ${deviceId} from saved devices`, 'ok');
   }
 
+  function decodeJwt(token) {
+    try {
+      const payload = token.split('.')[1];
+      if (!payload) return null;
+      return JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    } catch { return null; }
+  }
+
   async function fetchMyDevices() {
     const token = val('token').trim();
     if (!token) { toast('Enter your API token first', 'err'); return; }
+
+    // Extract callsign from JWT so we can filter the device list client-side
+    const jwt = decodeJwt(token);
+    const callsign = jwt?.callsign || jwt?.sub || null;
+    if (!callsign) {
+      toast('Could not read callsign from token — enter Device ID manually', 'err');
+      return;
+    }
 
     const btn = document.getElementById('fetchDevicesBtn');
     btn.disabled = true;
@@ -641,18 +657,14 @@
     try {
       const r = await fetch(`${API}/device`, {
         headers: { 'Authorization': `Bearer ${token}` },
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(15000),
       });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const devices = await r.json();
+      const all = await r.json();
 
-      if (!Array.isArray(devices) || devices.length === 0) {
-        toast('No devices found on your account', 'err');
-        return;
-      }
-
-      if (devices.length > 100) {
-        toast('API returned all network devices — enter your Device ID manually', 'err');
+      const devices = all.filter(d => d.callsign === callsign);
+      if (!devices.length) {
+        toast(`No devices found for callsign ${callsign}`, 'err');
         return;
       }
 
@@ -663,14 +675,13 @@
       });
       localStorage.setItem('bm_devices', JSON.stringify(savedDevices));
 
-      // Build rich labels: use callsign + linkname for display but store just the id
       const sel = document.getElementById('deviceSelect');
       sel.innerHTML = '<option value="">— Select a device —</option>' +
         devices.map(d =>
           `<option value="${esc(String(d.id))}">${esc(d.callsign)} — ${esc(d.linkname)} (${d.id})</option>`
         ).join('');
 
-      toast(`Fetched ${devices.length} device${devices.length !== 1 ? 's' : ''}${added ? ` (${added} new)` : ''}`, 'ok');
+      toast(`Found ${devices.length} device${devices.length !== 1 ? 's' : ''} for ${callsign}${added ? ` (${added} new)` : ''}`, 'ok');
     } catch (e) {
       toast(`Failed to fetch devices: ${e.message}`, 'err');
     } finally {
