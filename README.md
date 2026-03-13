@@ -119,7 +119,7 @@ No installation required — it runs entirely in your browser and calls the Bran
 
 ## Features
 
-- **Connection Settings** — Enter your Device ID, API token, and time slot. All values are persisted in browser `localStorage` and restored on every visit. Click **🔄** to automatically fetch all devices linked to your BrandMeister account — the dropdown is populated with each device's callsign, link name, and ID. Previously used Device IDs are also saved in the dropdown for quick selection; individual entries can be removed with the 🗑️ button. Default time slot is **Slot 0 (simplex)**.
+- **Connection Settings** — Configure your callsign, API token, and time slot. All values are persisted in browser `localStorage` and restored on every visit. Click **🔄** next to the device dropdown to fetch all devices registered to your callsign via the BrandMeister API (`/v2/device/byCall`) — each device is shown with its callsign, link name, and ID. Select the target device from the dropdown. Default time slot is **Slot 0 (simplex)**.
 - **Profile Manager** — Create and manage multiple named profiles, each containing a list of talk group numbers. Profiles are stored in `localStorage` and survive page reloads.
 - **Dark / Light mode** — Toggle between dark and light themes using the button in the top-right corner of the page. The preference is saved in `localStorage` and applied automatically on the next visit.
 - **Talk group names** — For each talk group number, the name is automatically fetched from the BrandMeister API (`api.brandmeister.network/v2/talkgroup/{id}`) and displayed alongside the number in profile cards, the edit modal, the current groups panel, and the activity log. Names are cached in `localStorage` for 24 hours to avoid repeated requests.
@@ -137,9 +137,11 @@ No installation required — it runs entirely in your browser and calls the Bran
 ## Usage
 
 1. Open **https://ivomod.github.io/bm-tg-profiler/** in your browser.
-2. Fill in **Device ID** (or pick a previously used one from the dropdown), **API Token**, and **Time Slot** in the Connection Settings panel. Click **Save Settings** — the Device ID is added to the saved list automatically.
-3. Create a profile by clicking **+ New** in the Profiles panel and adding talk group numbers.
-4. Click **▶ Apply** next to a profile (or select it and click **Apply Profile**) to push it to your device.
+2. Enter your **Callsign**, **API Token**, and **Time Slot** in the Connection Settings panel.
+3. Click **🔄** to fetch your BrandMeister devices — select the target device from the dropdown.
+4. Click **Save Settings**.
+5. Create a profile by clicking **+ New** in the Profiles panel and adding talk group numbers.
+6. Click **▶ Apply** next to a profile (or select it and click **Apply Profile**) to push it to your device.
 
 > **Note:** Your API token is stored only in your own browser's `localStorage` and is never sent anywhere except directly to the BrandMeister API (`api.brandmeister.network`).
 
