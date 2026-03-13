@@ -105,6 +105,42 @@ During the profile switch process, the script removes all calls and dynamic grou
    ✨ 🎉 Profile successfully applied!
    ```
 
+---
+
+# Web GUI
+
+A browser-based interface is available at:
+
+**https://ivomod.github.io/bm-tg-profiler/**
+
+No installation required — it runs entirely in your browser and calls the BrandMeister API directly.
+
+![BM TG Profiler Web GUI](docs/screenshot.png)
+
+## Features
+
+- **Connection Settings** — Enter your Device ID, API token, and time slot. All values are persisted in browser `localStorage` and restored on every visit.
+- **Profile Manager** — Create and manage multiple named profiles, each containing a list of talk group numbers. Profiles are stored in `localStorage` and survive page reloads.
+- **One-click Apply** — Selecting a profile and clicking Apply runs the full 5-step sequence with a live progress tracker and timestamped activity log:
+  1. Delete all existing static groups
+  2. Drop dynamic groups
+  3. Drop current call
+  4. Reset connection
+  5. Set new static groups
+- **View Current Groups** — Inspect which static groups are currently configured on the device without applying any changes.
+- **Import / Export** — Import talk groups from a JSON profile file (`{"static_groups": [...]}`) and export any profile back to JSON.
+
+## Usage
+
+1. Open **https://ivomod.github.io/bm-tg-profiler/** in your browser.
+2. Fill in **Device ID**, **API Token**, and **Time Slot** in the Connection Settings panel. These are saved automatically to `localStorage`.
+3. Create a profile by clicking **+ New** in the Profiles panel and adding talk group numbers.
+4. Click **▶ Apply** next to a profile (or select it and click **Apply Profile**) to push it to your device.
+
+> **Note:** Your API token is stored only in your own browser's `localStorage` and is never sent anywhere except directly to the BrandMeister API (`api.brandmeister.network`).
+
+---
+
 ## Tests
 Run the test suite with:
 ```bash
