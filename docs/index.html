@@ -364,10 +364,11 @@
         <label>Device ID</label>
         <div class="add-row" style="margin-bottom:0.4rem">
           <select id="deviceSelect" onchange="onDeviceSelect()" style="flex:1"></select>
+          <button class="btn btn-secondary btn-sm" id="fetchDevicesBtn" onclick="fetchMyDevices()" title="Fetch devices from your BrandMeister account">🔄</button>
           <button class="btn btn-ghost btn-sm" onclick="removeSelectedDevice()" title="Remove selected device from list">🗑️</button>
         </div>
         <input id="deviceId" type="text" placeholder="Or enter a new device ID…" />
-        <div class="help">Selecting a saved device fills the field. New IDs are saved on Save Settings.</div>
+        <div class="help">Click 🔄 to fetch your BM devices, or enter a device ID manually. New IDs are saved on Save Settings.</div>
       </div>
       <div class="form-group">
         <label>API Token</label>
@@ -627,6 +628,55 @@
     renderDeviceSelect('');
     document.getElementById('deviceId').value = '';
     toast(`Removed ${deviceId} from saved devices`, 'ok');
+  }
+
+  async function fetchMyDevices() {
+    const token = val('token').trim();
+    if (!token) { toast('Enter your API token first', 'err'); return; }
+
+    const btn = document.getElementById('fetchDevicesBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳';
+
+    try {
+      const r = await fetch(`${API}/device`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const devices = await r.json();
+
+      if (!Array.isArray(devices) || devices.length === 0) {
+        toast('No devices found on your account', 'err');
+        return;
+      }
+
+      if (devices.length > 100) {
+        toast('API returned all network devices — enter your Device ID manually', 'err');
+        return;
+      }
+
+      let added = 0;
+      devices.forEach(d => {
+        const id = String(d.id);
+        if (!savedDevices.includes(id)) { savedDevices.push(id); added++; }
+      });
+      localStorage.setItem('bm_devices', JSON.stringify(savedDevices));
+
+      // Build rich labels: use callsign + linkname for display but store just the id
+      const sel = document.getElementById('deviceSelect');
+      sel.innerHTML = '<option value="">— Select a device —</option>' +
+        devices.map(d =>
+          `<option value="${esc(String(d.id))}">${esc(d.callsign)} — ${esc(d.linkname)} (${d.id})</option>`
+        ).join('');
+
+      toast(`Fetched ${devices.length} device${devices.length !== 1 ? 's' : ''}${added ? ` (${added} new)` : ''}`, 'ok');
+    } catch (e) {
+      toast(`Failed to fetch devices: ${e.message}`, 'err');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '🔄';
+    }
   }
 
   function toggleToken() {
