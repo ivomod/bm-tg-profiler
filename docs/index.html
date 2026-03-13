@@ -415,7 +415,7 @@
         No profile selected — click a profile to select it
       </div>
       <div class="steps" id="steps">
-        <div class="step" id="s-delete"><div class="step-dot">1</div>Delete existing static groups</div>
+        <div class="step" id="s-delete"><div class="step-dot">1</div>Delete static groups on selected slot</div>
         <div class="step" id="s-dynamic"><div class="step-dot">2</div>Drop dynamic groups</div>
         <div class="step" id="s-call"><div class="step-dot">3</div>Drop current call</div>
         <div class="step" id="s-reset"><div class="step-dot">4</div>Reset connection</div>
@@ -888,19 +888,21 @@
     log(`   ${profile.groups.length} talk group(s): ${profile.groups.join(', ')}`, 'info');
 
     try {
-      // 1 – Delete existing static groups
+      // 1 – Delete existing static groups on the selected slot only
       setStep('delete', 'run');
       log('🧹 Fetching existing static groups…', 'info');
       const r = await req('GET', `/device/${deviceId}/talkgroup`, null, token);
       const existing = await r.json();
-      log(`🗑️  Deleting ${existing.length} group(s)…`, 'info');
-      await Promise.all(existing.map(async g => {
+      const toDelete = existing.filter(g => g.slot === slot);
+      const skipped  = existing.length - toDelete.length;
+      log(`🗑️  Deleting ${toDelete.length} group(s) on slot ${slot}${skipped ? ` (${skipped} on other slot(s) left untouched)` : ''}…`, 'info');
+      await Promise.all(toDelete.map(async g => {
         await req('DELETE', `/device/${deviceId}/talkgroup/${g.slot}/${g.talkgroup}`, null, token);
         const name = tgCache[g.talkgroup]?.name;
         log(`   — Deleted ${g.talkgroup}${name ? ` (${name})` : ''} slot ${g.slot}`, 'info');
       }));
       setStep('delete', 'done');
-      log(`✅ Deleted ${existing.length} static group(s).`, 'success');
+      log(`✅ Deleted ${toDelete.length} static group(s) on slot ${slot}.`, 'success');
 
       // 2 – Drop dynamic groups
       setStep('dynamic', 'run');
