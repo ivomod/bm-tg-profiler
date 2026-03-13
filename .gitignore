@@ -176,3 +176,6 @@ cython_debug/
 # IntelliJ
 .idea/
 *.iml
+
+# Cursor IDE
+.cursor/
