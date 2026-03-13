@@ -380,7 +380,8 @@
       <div class="form-group">
         <label>Time Slot</label>
         <select id="slot">
-          <option value="1">Slot 1</option>
+          <option value="0">Slot 0 (simplex)</option>
+          <option value="1" selected>Slot 1</option>
           <option value="2">Slot 2</option>
         </select>
       </div>
@@ -839,25 +840,27 @@
   }
 
   async function fetchCurrentGroups() {
-    const { deviceId, token } = getConn();
+    const { deviceId, token, slot } = getConn();
     if (!deviceId || !token) { toast('Configure Device ID and Token first', 'err'); return; }
-    log('🔍 Fetching current static groups…', 'info');
+    log(`🔍 Fetching current static groups on slot ${slot}…`, 'info');
     try {
       const r = await req('GET', `/device/${deviceId}/talkgroup`, null, token);
-      const groups = await r.json();
+      const all = await r.json();
+      const groups = all.filter(g => g.slot === slot);
       const card = document.getElementById('currentCard');
       const content = document.getElementById('currentContent');
+      document.getElementById('currentCard').querySelector('.card-title').textContent = `📡 Current Static Groups — Slot ${slot}`;
       card.style.display = 'block';
       if (!groups.length) {
-        content.innerHTML = '<div class="empty">No static groups currently configured.</div>';
+        content.innerHTML = `<div class="empty">No static groups on slot ${slot}.</div>`;
       } else {
         const renderChips = () => {
           content.innerHTML = `
-            <div class="help" style="margin-bottom:0.5rem">${groups.length} group(s) on device</div>
+            <div class="help" style="margin-bottom:0.5rem">${groups.length} group(s) on slot ${slot}</div>
             <div class="group-chips">
               ${groups.map(g => {
                 const name = tgCache[g.talkgroup]?.name;
-                return `<span class="chip">${g.talkgroup}${name ? ` <span class="tg-name" style="max-width:none"> · ${esc(name)}</span>` : ''} <span>s${g.slot}</span></span>`;
+                return `<span class="chip">${g.talkgroup}${name ? ` <span class="tg-name" style="max-width:none"> · ${esc(name)}</span>` : ''}</span>`;
               }).join('')}
             </div>`;
         };
