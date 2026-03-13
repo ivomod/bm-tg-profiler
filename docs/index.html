@@ -34,6 +34,28 @@
       --log-bg: #f1f5f9;
     }
 
+    /* Color-blind friendly dark theme (deuteranopia/protanopia safe)
+       Accent: blue #0077bb — Success: teal #009988 — Error: orange #ee7733
+       This palette avoids red/green reliance and is safe for the most common types. */
+    html.colorblind {
+      --bg: #090d18;
+      --surface: #121829;
+      --surface-2: #1a2235;
+      --border: #263050;
+      --accent: #0077bb;
+      --text: #eef2f7;
+      --text-muted: #7a8faa;
+      --success: #009988;
+      --error: #ee7733;
+      --shadow: 0 4px 24px rgba(0,0,0,0.55);
+      --log-bg: #060910;
+    }
+
+    html.colorblind .profile-item.selected { background: rgba(0,119,187,0.09); }
+    html.colorblind .tag { background: rgba(0,119,187,0.12); border-color: rgba(0,119,187,0.38); }
+    html.colorblind .step.s-run .step-dot { background: rgba(0,119,187,0.18); }
+    html.colorblind .badge-run { background: rgba(0,119,187,0.18); }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -459,13 +481,31 @@
   let busy = false;
 
   // ── Theme ──────────────────────────────────────────────────────────────────
+  const THEMES = ['dark', 'light', 'colorblind'];
+  const THEME_BTN_LABEL = {
+    dark:       '☀️ Light',
+    light:      '👁 A11y',
+    colorblind: '🌙 Dark',
+  };
+  const THEME_BTN_TITLE = {
+    dark:       'Switch to light mode',
+    light:      'Switch to color-blind friendly mode',
+    colorblind: 'Switch to dark mode',
+  };
+
   function applyTheme(theme) {
-    document.documentElement.classList.toggle('light', theme === 'light');
-    document.getElementById('themeBtn').textContent = theme === 'light' ? '🌙 Dark' : '☀️ Light';
+    const html = document.documentElement;
+    html.classList.remove('light', 'colorblind');
+    if (theme === 'light') html.classList.add('light');
+    if (theme === 'colorblind') html.classList.add('colorblind');
+    const btn = document.getElementById('themeBtn');
+    btn.textContent = THEME_BTN_LABEL[theme] || '☀️ Light';
+    btn.title = THEME_BTN_TITLE[theme] || '';
   }
 
   function toggleTheme() {
-    const next = document.documentElement.classList.contains('light') ? 'dark' : 'light';
+    const current = localStorage.getItem('bm_theme') || 'dark';
+    const next = THEMES[(THEMES.indexOf(current) + 1) % THEMES.length];
     localStorage.setItem('bm_theme', next);
     applyTheme(next);
   }
