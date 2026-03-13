@@ -119,17 +119,18 @@ No installation required — it runs entirely in your browser and calls the Bran
 
 ## Features
 
-- **Connection Settings** — Enter your Device ID, API token, and time slot. All values are persisted in browser `localStorage` and restored on every visit. Previously used Device IDs are saved in a dropdown for quick selection; individual entries can be removed with the 🗑️ button. Default time slot is **Slot 1**.
+- **Connection Settings** — Enter your Device ID, API token, and time slot. All values are persisted in browser `localStorage` and restored on every visit. Previously used Device IDs are saved in a dropdown for quick selection; individual entries can be removed with the 🗑️ button. Default time slot is **Slot 0 (simplex)**.
 - **Profile Manager** — Create and manage multiple named profiles, each containing a list of talk group numbers. Profiles are stored in `localStorage` and survive page reloads.
 - **Dark / Light mode** — Toggle between dark and light themes using the button in the top-right corner of the page. The preference is saved in `localStorage` and applied automatically on the next visit.
 - **Talk group names** — For each talk group number, the name is automatically fetched from the BrandMeister API (`api.brandmeister.network/v2/talkgroup/{id}`) and displayed alongside the number in profile cards, the edit modal, the current groups panel, and the activity log. Names are cached in `localStorage` for 24 hours to avoid repeated requests.
-- **One-click Apply** — Selecting a profile and clicking Apply runs the full 5-step sequence with a live progress tracker and timestamped activity log:
-  1. Delete all existing static groups
+- **One-click Apply** — Selecting a profile and clicking Apply runs the full 5-step sequence with a live progress tracker and timestamped activity log. Only groups on the **selected slot** are removed — groups on other slots are left untouched:
+  1. Delete static groups on the selected slot
   2. Drop dynamic groups
   3. Drop current call
   4. Reset connection
-  5. Set new static groups
-- **View Current Groups** — Inspect which static groups are currently configured on the device without applying any changes.
+  5. Set new static groups on the selected slot
+- **View Current Groups** — Inspect which static groups are currently configured on the selected slot of the device without applying any changes.
+- **Clear Slot** — Remove all static talk groups from the selected slot without applying a profile. A confirmation prompt is shown before deleting.
 - **Import / Export (single profile)** — Import talk groups from a JSON profile file (`{"static_groups": [...]}`) by pasting JSON or loading a file from disk. Export any profile back to JSON.
 - **Import / Export (all profiles)** — Export all profiles at once to a `bm-profiles.json` file for backup or transfer. Import that file on any device to restore all profiles in one step. Importing all profiles will replace existing ones — a confirmation prompt is shown before overwriting.
 
