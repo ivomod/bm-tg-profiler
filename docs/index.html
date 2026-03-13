@@ -647,15 +647,14 @@
     btn.textContent = '⏳';
 
     try {
-      const r = await fetch(`${API}/device`, {
+      const r = await fetch(`${API}/device/byCall?callsign=${encodeURIComponent(callsign)}`, {
         headers: { 'Authorization': `Bearer ${token}` },
         signal: AbortSignal.timeout(15000),
       });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const all = await r.json();
+      const devices = await r.json();
 
-      const devices = all.filter(d => d.callsign === callsign);
-      if (!devices.length) {
+      if (!Array.isArray(devices) || !devices.length) {
         toast(`No devices found for callsign ${callsign}`, 'err');
         return;
       }
