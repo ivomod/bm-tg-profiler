@@ -428,7 +428,7 @@
         <div class="step" id="s-add"><div class="step-dot">5</div>Set new static groups</div>
       </div>
       <div class="row-btns">
-        <button class="btn btn-primary" id="applyBtn" onclick="applyProfile()" disabled>▶ Apply Profile</button>
+        <button class="btn btn-primary" id="applyBtn" onclick="confirmApply()" disabled>▶ Apply Profile</button>
         <button class="btn btn-secondary" onclick="fetchCurrentGroups()">🔍 View Current Groups</button>
         <button class="btn btn-secondary" id="clearSlotBtn" onclick="clearSlot()">🗑️ Clear Slot</button>
         <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="clearLog()">Clear log</button>
@@ -452,6 +452,19 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- Confirm Apply modal -->
+<div id="confirmModal" class="overlay" style="display:none">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">Apply Profile?</div>
+    <p id="confirmMsg" style="margin:0 0 0.4rem;line-height:1.5"></p>
+    <p style="margin:0;font-size:0.8rem;color:var(--text-muted)">This will delete all existing static groups on the selected slot and replace them with the profile's groups.</p>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-primary" id="confirmOkBtn">▶ Apply</button>
+    </div>
   </div>
 </div>
 
@@ -709,7 +722,7 @@
 
   function quickApply(id) {
     selectProfile(id);
-    applyProfile();
+    confirmApply();
   }
 
   function openCreate() {
@@ -957,6 +970,27 @@
       busy = false;
       document.getElementById('clearSlotBtn').disabled = false;
     }
+  }
+
+  function confirmApply() {
+    if (busy) return;
+    const { deviceId, token, slot } = getConn();
+    if (!deviceId || !token) { toast('Configure Device ID and Token first', 'err'); return; }
+    const profile = profiles.find(p => p.id === selectedId);
+    if (!profile) { toast('Select a profile first', 'err'); return; }
+
+    const slotLabel = slot === 0 ? 'Slot 0 (simplex)' : `Slot ${slot}`;
+    document.getElementById('confirmMsg').innerHTML =
+      `Profile <strong>${profile.name}</strong> — ${profile.groups.length} talk group(s) on <strong>${slotLabel}</strong>.`;
+
+    const modal = document.getElementById('confirmModal');
+    modal.style.display = 'flex';
+    const okBtn = document.getElementById('confirmOkBtn');
+    okBtn.onclick = () => { closeConfirm(); applyProfile(); };
+  }
+
+  function closeConfirm() {
+    document.getElementById('confirmModal').style.display = 'none';
   }
 
   async function applyProfile() {
