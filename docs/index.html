@@ -366,8 +366,7 @@
           <select id="deviceSelect" onchange="onDeviceSelect()" style="flex:1"></select>
           <button class="btn btn-secondary btn-sm" id="fetchDevicesBtn" onclick="fetchMyDevices()" title="Fetch devices from your BrandMeister account">🔄</button>
         </div>
-        <input id="deviceId" type="text" placeholder="Or enter a new device ID…" />
-        <div class="help">Click 🔄 to fetch your BM devices, or enter a device ID manually. New IDs are saved on Save Settings.</div>
+        <div class="help">Click 🔄 to fetch your BM devices using your callsign.</div>
       </div>
       <div class="form-group">
         <label>Callsign</label>
@@ -577,7 +576,6 @@
     document.getElementById('token').value    = s.token || '';
     document.getElementById('slot').value     = s.slot  || '0';
     renderDeviceSelect(s.deviceId || '');
-    document.getElementById('deviceId').value = s.deviceId || '';
     profiles = JSON.parse(localStorage.getItem('bm_profiles') || '[]');
     renderProfiles();
   }
@@ -588,12 +586,7 @@
   }
 
   function saveSettings() {
-    const deviceId = val('deviceId').trim();
-    if (deviceId && !savedDevices.includes(deviceId)) {
-      savedDevices.push(deviceId);
-      localStorage.setItem('bm_devices', JSON.stringify(savedDevices));
-      renderDeviceSelect(deviceId);
-    }
+    const deviceId = document.getElementById('deviceSelect').value;
     localStorage.setItem('bm_settings', JSON.stringify({
       deviceId,
       callsign: val('callsign').toUpperCase(),
@@ -605,7 +598,7 @@
 
   function getConn() {
     return {
-      deviceId: val('deviceId').trim(),
+      deviceId: document.getElementById('deviceSelect').value,
       token:    val('token'),
       slot:     parseInt(val('slot')),
     };
@@ -620,21 +613,7 @@
       ).join('');
   }
 
-  function onDeviceSelect() {
-    const v = document.getElementById('deviceSelect').value;
-    if (v) document.getElementById('deviceId').value = v;
-  }
-
-  function removeSelectedDevice() {
-    const deviceId = val('deviceId').trim() || document.getElementById('deviceSelect').value;
-    if (!deviceId) { toast('No device selected', 'err'); return; }
-    if (!savedDevices.includes(deviceId)) { toast('Device not in saved list', 'err'); return; }
-    savedDevices = savedDevices.filter(d => d !== deviceId);
-    localStorage.setItem('bm_devices', JSON.stringify(savedDevices));
-    renderDeviceSelect('');
-    document.getElementById('deviceId').value = '';
-    toast(`Removed ${deviceId} from saved devices`, 'ok');
-  }
+  function onDeviceSelect() {}
 
   async function fetchMyDevices() {
     const token    = val('token').trim();
