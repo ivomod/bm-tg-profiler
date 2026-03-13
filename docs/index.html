@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BM TG Profiler</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-2: #222535;
+      --border: #2d3149;
+      --accent: #f59e0b;
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --success: #10b981;
+      --error: #ef4444;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    a { color: var(--accent); }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.9rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .logo {
+      width: 36px; height: 36px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+
+    .header-title { font-size: 1.1rem; font-weight: 700; }
+    .header-title span { color: var(--accent); }
+    .header-sub { font-size: 0.75rem; color: var(--text-muted); }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 1.5rem;
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    @media (max-width: 800px) {
+      .container { grid-template-columns: 1fr; padding: 1rem; }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+    }
+
+    .stack > .card + .card { margin-top: 1.25rem; }
+
+    .card-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 0.3rem;
+    }
+
+    input, select {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.55rem 0.85rem;
+      color: var(--text);
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, select:focus { border-color: var(--accent); }
+
+    .form-group { margin-bottom: 0.85rem; }
+
+    .input-wrap { position: relative; }
+    .input-wrap input { padding-right: 2.5rem; }
+    .eye-btn {
+      position: absolute; right: 0.7rem; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--text-muted); cursor: pointer;
+      font-size: 0.9rem; padding: 0; line-height: 1;
+    }
+    .eye-btn:hover { color: var(--text); }
+
+    .help { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.55rem 1.1rem;
+      border-radius: 8px; border: none;
+      font-size: 0.8rem; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .btn-primary { background: var(--accent); color: #0f1117; }
+    .btn-primary:hover:not(:disabled) { background: #fbbf24; }
+    .btn-secondary {
+      background: var(--surface-2); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    .btn-ghost { background: none; border: 1px solid transparent; color: var(--text-muted); }
+    .btn-ghost:hover:not(:disabled) { color: var(--error); border-color: rgba(239,68,68,0.3); }
+    .btn-sm { padding: 0.3rem 0.65rem; font-size: 0.75rem; border-radius: 6px; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-full { width: 100%; justify-content: center; }
+
+    /* Profile list */
+    .profile-list { display: flex; flex-direction: column; gap: 0.65rem; }
+
+    .profile-item {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .profile-item:hover { border-color: #4a5180; }
+    .profile-item.selected { border-color: var(--accent); background: rgba(245,158,11,0.04); }
+
+    .profile-name { font-weight: 600; font-size: 0.875rem; }
+    .profile-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.6rem; }
+    .tag {
+      background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25);
+      color: var(--accent); border-radius: 5px;
+      padding: 0.15rem 0.45rem; font-size: 0.72rem; font-family: monospace;
+      display: inline-flex; align-items: center; gap: 0.25rem;
+    }
+    .tag-x { cursor: pointer; opacity: 0.6; font-size: 0.85rem; line-height: 1; }
+    .tag-x:hover { opacity: 1; color: var(--error); }
+
+    .profile-actions { display: flex; gap: 0.4rem; margin-top: 0.75rem; flex-wrap: wrap; }
+    .ml-auto { margin-left: auto; }
+
+    /* Steps */
+    .steps { display: flex; flex-direction: column; gap: 0.45rem; margin: 1rem 0; }
+    .step {
+      display: flex; align-items: center; gap: 0.65rem;
+      font-size: 0.82rem; color: var(--text-muted);
+    }
+    .step-dot {
+      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+      background: var(--surface-2); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 700;
+    }
+    .step.s-done { color: var(--text); }
+    .step.s-done .step-dot { background: rgba(16,185,129,0.15); border-color: var(--success); color: var(--success); }
+    .step.s-run { color: var(--accent); }
+    .step.s-run .step-dot { background: rgba(245,158,11,0.15); border-color: var(--accent); animation: pulse 0.9s ease infinite; }
+    .step.s-err { color: var(--error); }
+    .step.s-err .step-dot { background: rgba(239,68,68,0.15); border-color: var(--error); color: var(--error); }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+    /* Status badge */
+    .badge {
+      padding: 0.2rem 0.65rem; border-radius: 100px;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.03em;
+    }
+    .badge-idle { background: rgba(100,116,139,0.15); color: var(--text-muted); }
+    .badge-run  { background: rgba(245,158,11,0.15);  color: var(--accent); }
+    .badge-ok   { background: rgba(16,185,129,0.15);  color: var(--success); }
+    .badge-err  { background: rgba(239,68,68,0.15);   color: var(--error); }
+
+    /* Log */
+    .log {
+      background: #080a11;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      min-height: 260px;
+      max-height: 480px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.775rem;
+      line-height: 1.75;
+    }
+    .log-row { display: flex; gap: 0.65rem; }
+    .log-ts { color: var(--text-muted); flex-shrink: 0; width: 78px; }
+    .c-info    { color: var(--text); }
+    .c-success { color: var(--success); }
+    .c-error   { color: var(--error); }
+    .c-muted   { color: var(--text-muted); }
+    .log-sep { height: 1px; background: var(--border); margin: 0.5rem 0; }
+
+    /* Current groups */
+    .group-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .chip {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 0.2rem 0.55rem;
+      font-size: 0.75rem; font-family: monospace;
+    }
+    .chip span { color: var(--text-muted); }
+
+    /* Modal */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.72);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100; backdrop-filter: blur(3px);
+    }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem;
+      width: 90%; max-width: 500px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 1.2rem; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 1.25rem; }
+
+    .add-row { display: flex; gap: 0.5rem; }
+    .add-row input { flex: 1; }
+
+    /* Toasts */
+    .toasts {
+      position: fixed; bottom: 1.25rem; right: 1.25rem;
+      display: flex; flex-direction: column; gap: 0.4rem; z-index: 200;
+    }
+    .toast {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.65rem 1rem;
+      font-size: 0.8rem; box-shadow: var(--shadow);
+      animation: slideIn 0.18s ease; max-width: 280px;
+    }
+    .toast-ok  { border-left: 3px solid var(--success); }
+    .toast-err { border-left: 3px solid var(--error); }
+    @keyframes slideIn { from { transform: translateX(110%); opacity:0; } to { transform:translateX(0); opacity:1; } }
+
+    .divider { height: 1px; background: var(--border); margin: 1rem 0; }
+    .flex { display: flex; align-items: center; }
+    .gap-2 { gap: 0.5rem; }
+    .empty { text-align: center; padding: 1.75rem 1rem; color: var(--text-muted); font-size: 0.85rem; }
+    .empty .icon { font-size: 2rem; margin-bottom: 0.4rem; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .row-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.85rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">📡</div>
+  <div>
+    <div class="header-title">BM <span>TG</span> Profiler</div>
+    <div class="header-sub">BrandMeister Talk Group Profile Manager</div>
+  </div>
+</header>
+
+<div class="container">
+  <!-- Left column -->
+  <div class="stack">
+
+    <!-- Settings -->
+    <div class="card">
+      <div class="card-title">⚙️ Connection Settings</div>
+      <div class="form-group">
+        <label>Device ID</label>
+        <input id="deviceId" type="text" placeholder="e.g. 123456" />
+      </div>
+      <div class="form-group">
+        <label>API Token</label>
+        <div class="input-wrap">
+          <input id="token" type="password" placeholder="Your BrandMeister API token" />
+          <button class="eye-btn" onclick="toggleToken()" title="Show/hide token">👁</button>
+        </div>
+        <div class="help"><a href="https://news.brandmeister.network/introducing-user-api-keys/" target="_blank">Get your API token →</a></div>
+      </div>
+      <div class="form-group">
+        <label>Time Slot</label>
+        <select id="slot">
+          <option value="0">Slot 0 (default / simplex)</option>
+          <option value="1">Slot 1</option>
+          <option value="2">Slot 2</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="saveSettings()">💾 Save Settings</button>
+    </div>
+
+    <!-- Profiles -->
+    <div class="card">
+      <div class="card-title">
+        <span>📋 Profiles</span>
+        <button class="btn btn-secondary btn-sm" onclick="openCreate()">+ New</button>
+      </div>
+      <div id="profileList" class="profile-list"></div>
+    </div>
+
+  </div>
+
+  <!-- Right column -->
+  <div class="stack">
+
+    <!-- Apply -->
+    <div class="card">
+      <div class="card-title">
+        <span>🚀 Apply Profile</span>
+        <span id="statusBadge" class="badge badge-idle">Idle</span>
+      </div>
+      <div id="selectedLabel" style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem;">
+        No profile selected — click a profile to select it
+      </div>
+      <div class="steps" id="steps">
+        <div class="step" id="s-delete"><div class="step-dot">1</div>Delete existing static groups</div>
+        <div class="step" id="s-dynamic"><div class="step-dot">2</div>Drop dynamic groups</div>
+        <div class="step" id="s-call"><div class="step-dot">3</div>Drop current call</div>
+        <div class="step" id="s-reset"><div class="step-dot">4</div>Reset connection</div>
+        <div class="step" id="s-add"><div class="step-dot">5</div>Set new static groups</div>
+      </div>
+      <div class="row-btns">
+        <button class="btn btn-primary" id="applyBtn" onclick="applyProfile()" disabled>▶ Apply Profile</button>
+        <button class="btn btn-secondary" onclick="fetchCurrentGroups()">🔍 View Current Groups</button>
+        <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="clearLog()">Clear log</button>
+      </div>
+    </div>
+
+    <!-- Current groups (hidden until fetched) -->
+    <div class="card" id="currentCard" style="display:none">
+      <div class="card-title">📡 Current Static Groups on Device</div>
+      <div id="currentContent"></div>
+    </div>
+
+    <!-- Log -->
+    <div class="card">
+      <div class="card-title">📝 Activity Log</div>
+      <div class="log" id="log">
+        <div class="log-row"><span class="log-ts">--:--:--</span><span class="c-muted">Ready. Configure settings and select a profile to begin.</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Create / Edit modal -->
+<div id="modal" class="overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">New Profile</div>
+    <div class="form-group">
+      <label>Profile Name</label>
+      <input id="pName" type="text" placeholder="e.g. Local Net, Evening DX…" />
+    </div>
+    <div class="form-group">
+      <label>Talk Groups</label>
+      <div id="modalTags" class="tags" style="min-height:28px"></div>
+      <div class="add-row" style="margin-top:0.6rem">
+        <input id="newTg" type="number" placeholder="Talk group number…" onkeydown="tgKeydown(event)" />
+        <button class="btn btn-secondary" onclick="addTg()">Add</button>
+      </div>
+      <div class="help">Press Enter or click Add after typing a number.</div>
+    </div>
+    <div class="divider"></div>
+    <div class="form-group">
+      <label>Import from JSON</label>
+      <div class="add-row">
+        <input id="importJson" type="text" placeholder='{"static_groups":[260,260014,…]}' />
+        <button class="btn btn-secondary" onclick="importJson()">Import</button>
+      </div>
+      <div class="help">Paste a profile JSON or just an array of numbers.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProfile()">Save Profile</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toasts -->
+<div id="toasts" class="toasts"></div>
+
+<script>
+  const API = 'https://api.brandmeister.network/v2';
+
+  let profiles = [];
+  let selectedId = null;
+  let editingId = null;
+  let tempGroups = [];
+  let busy = false;
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  function init() {
+    const s = loadSettings();
+    document.getElementById('deviceId').value = s.deviceId || '';
+    document.getElementById('token').value    = s.token    || '';
+    document.getElementById('slot').value     = s.slot     || '0';
+    profiles = JSON.parse(localStorage.getItem('bm_profiles') || '[]');
+    renderProfiles();
+  }
+
+  function loadSettings() {
+    try { return JSON.parse(localStorage.getItem('bm_settings') || '{}'); }
+    catch { return {}; }
+  }
+
+  function saveSettings() {
+    localStorage.setItem('bm_settings', JSON.stringify({
+      deviceId: val('deviceId'),
+      token:    val('token'),
+      slot:     val('slot'),
+    }));
+    toast('Settings saved', 'ok');
+  }
+
+  function getConn() {
+    return {
+      deviceId: val('deviceId'),
+      token:    val('token'),
+      slot:     parseInt(val('slot')),
+    };
+  }
+
+  function toggleToken() {
+    const inp = document.getElementById('token');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
+  // ── Profiles ───────────────────────────────────────────────────────────────
+  function renderProfiles() {
+    const el = document.getElementById('profileList');
+    if (!profiles.length) {
+      el.innerHTML = `<div class="empty"><div class="icon">📋</div>No profiles yet.<br>Create one to get started!</div>`;
+      return;
+    }
+    el.innerHTML = profiles.map(p => `
+      <div class="profile-item ${p.id === selectedId ? 'selected' : ''}" onclick="selectProfile('${p.id}')">
+        <div class="profile-name">${esc(p.name)}</div>
+        <div class="profile-meta">${p.groups.length} talk group${p.groups.length !== 1 ? 's' : ''}</div>
+        <div class="tags">
+          ${p.groups.slice(0, 10).map(g => `<span class="tag">${g}</span>`).join('')}
+          ${p.groups.length > 10 ? `<span class="tag">+${p.groups.length - 10} more</span>` : ''}
+        </div>
+        <div class="profile-actions">
+          <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openEdit('${p.id}')">✏️ Edit</button>
+          <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();exportProfile('${p.id}')">📤 Export</button>
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();deleteProfile('${p.id}')">🗑️</button>
+          <button class="btn btn-primary btn-sm ml-auto" onclick="event.stopPropagation();quickApply('${p.id}')">▶ Apply</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function selectProfile(id) {
+    selectedId = id;
+    const p = profiles.find(x => x.id === id);
+    document.getElementById('selectedLabel').textContent = p ? `Selected: ${p.name}` : 'No profile selected';
+    document.getElementById('applyBtn').disabled = !p;
+    renderProfiles();
+  }
+
+  function quickApply(id) {
+    selectProfile(id);
+    applyProfile();
+  }
+
+  function openCreate() {
+    editingId = null; tempGroups = [];
+    document.getElementById('modalTitle').textContent = 'New Profile';
+    document.getElementById('pName').value = '';
+    document.getElementById('importJson').value = '';
+    document.getElementById('newTg').value = '';
+    renderModalTags();
+    document.getElementById('modal').style.display = 'flex';
+  }
+
+  function openEdit(id) {
+    const p = profiles.find(x => x.id === id);
+    if (!p) return;
+    editingId = id; tempGroups = [...p.groups];
+    document.getElementById('modalTitle').textContent = 'Edit Profile';
+    document.getElementById('pName').value = p.name;
+    document.getElementById('importJson').value = '';
+    document.getElementById('newTg').value = '';
+    renderModalTags();
+    document.getElementById('modal').style.display = 'flex';
+  }
+
+  function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
+  function tgKeydown(e) { if (e.key === 'Enter') addTg(); }
+
+  function addTg() {
+    const inp = document.getElementById('newTg');
+    const n = parseInt(inp.value.trim());
+    if (!isNaN(n) && n > 0 && !tempGroups.includes(n)) {
+      tempGroups.push(n);
+      tempGroups.sort((a,b) => a-b);
+      renderModalTags();
+    }
+    inp.value = ''; inp.focus();
+  }
+
+  function removeTg(n) {
+    tempGroups = tempGroups.filter(g => g !== n);
+    renderModalTags();
+  }
+
+  function renderModalTags() {
+    document.getElementById('modalTags').innerHTML =
+      tempGroups.map(g => `<span class="tag">${g}<span class="tag-x" onclick="removeTg(${g})">×</span></span>`).join('');
+  }
+
+  function importJson() {
+    const raw = val('importJson').trim();
+    try {
+      const parsed = JSON.parse(raw);
+      const arr = Array.isArray(parsed) ? parsed : (parsed.static_groups || []);
+      let added = 0;
+      arr.forEach(g => {
+        const n = parseInt(g);
+        if (!isNaN(n) && n > 0 && !tempGroups.includes(n)) { tempGroups.push(n); added++; }
+      });
+      tempGroups.sort((a,b) => a-b);
+      renderModalTags();
+      document.getElementById('importJson').value = '';
+      toast(`Imported ${added} talk group${added !== 1 ? 's' : ''}`, 'ok');
+    } catch { toast('Invalid JSON', 'err'); }
+  }
+
+  function saveProfile() {
+    const name = val('pName').trim();
+    if (!name) { toast('Profile name is required', 'err'); return; }
+    if (!tempGroups.length) { toast('Add at least one talk group', 'err'); return; }
+
+    if (editingId) {
+      const i = profiles.findIndex(p => p.id === editingId);
+      profiles[i] = { ...profiles[i], name, groups: tempGroups };
+    } else {
+      profiles.push({ id: Date.now().toString(), name, groups: tempGroups });
+    }
+    persist(); renderProfiles(); closeModal();
+    toast('Profile saved', 'ok');
+  }
+
+  function deleteProfile(id) {
+    if (!confirm('Delete this profile?')) return;
+    profiles = profiles.filter(p => p.id !== id);
+    if (selectedId === id) {
+      selectedId = null;
+      document.getElementById('selectedLabel').textContent = 'No profile selected — click a profile to select it';
+      document.getElementById('applyBtn').disabled = true;
+    }
+    persist(); renderProfiles();
+    toast('Profile deleted', 'ok');
+  }
+
+  function exportProfile(id) {
+    const p = profiles.find(x => x.id === id);
+    if (!p) return;
+    const blob = new Blob([JSON.stringify({ static_groups: p.groups }, null, 2)], { type: 'application/json' });
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `${p.name.replace(/\s+/g,'_')}.json` });
+    a.click(); URL.revokeObjectURL(a.href);
+  }
+
+  function persist() { localStorage.setItem('bm_profiles', JSON.stringify(profiles)); }
+
+  // ── API ────────────────────────────────────────────────────────────────────
+  async function req(method, path, body, token) {
+    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+    const r = await fetch(`${API}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
+    if (!r.ok) {
+      const txt = await r.text().catch(() => '');
+      throw new Error(`HTTP ${r.status}${txt ? ': ' + txt : ''}`);
+    }
+    return r;
+  }
+
+  async function fetchCurrentGroups() {
+    const { deviceId, token } = getConn();
+    if (!deviceId || !token) { toast('Configure Device ID and Token first', 'err'); return; }
+    log('🔍 Fetching current static groups…', 'info');
+    try {
+      const r = await req('GET', `/device/${deviceId}/talkgroup`, null, token);
+      const groups = await r.json();
+      const card = document.getElementById('currentCard');
+      const content = document.getElementById('currentContent');
+      card.style.display = 'block';
+      if (!groups.length) {
+        content.innerHTML = '<div class="empty">No static groups currently configured.</div>';
+      } else {
+        content.innerHTML = `
+          <div class="help" style="margin-bottom:0.5rem">${groups.length} group(s) on device</div>
+          <div class="group-chips">
+            ${groups.map(g => `<span class="chip">${g.talkgroup} <span>s${g.slot}</span></span>`).join('')}
+          </div>`;
+      }
+      log(`✅ Found ${groups.length} static group(s) on device.`, 'success');
+    } catch (e) {
+      log(`❌ ${e.message}`, 'error');
+      toast('Failed to fetch groups', 'err');
+    }
+  }
+
+  async function applyProfile() {
+    if (busy) return;
+    const { deviceId, token, slot } = getConn();
+    if (!deviceId || !token) { toast('Configure Device ID and Token first', 'err'); return; }
+    const profile = profiles.find(p => p.id === selectedId);
+    if (!profile) { toast('Select a profile first', 'err'); return; }
+
+    busy = true;
+    document.getElementById('applyBtn').disabled = true;
+    setBadge('run', 'Running…');
+    resetSteps();
+
+    logSep();
+    log(`🚀 Applying profile "${profile.name}"…`, 'info');
+    log(`   ${profile.groups.length} talk group(s): ${profile.groups.join(', ')}`, 'info');
+
+    try {
+      // 1 – Delete existing static groups
+      setStep('delete', 'run');
+      log('🧹 Fetching existing static groups…', 'info');
+      const r = await req('GET', `/device/${deviceId}/talkgroup`, null, token);
+      const existing = await r.json();
+      log(`🗑️  Deleting ${existing.length} group(s)…`, 'info');
+      await Promise.all(existing.map(async g => {
+        await req('DELETE', `/device/${deviceId}/talkgroup/${g.slot}/${g.talkgroup}`, null, token);
+        log(`   — Deleted ${g.talkgroup} (slot ${g.slot})`, 'info');
+      }));
+      setStep('delete', 'done');
+      log(`✅ Deleted ${existing.length} static group(s).`, 'success');
+
+      // 2 – Drop dynamic groups
+      setStep('dynamic', 'run');
+      await req('GET', `/device/${deviceId}/action/dropDynamicGroups/${slot}`, null, token);
+      setStep('dynamic', 'done');
+      log('✅ Dropped dynamic groups.', 'success');
+
+      // 3 – Drop current call
+      setStep('call', 'run');
+      await req('GET', `/device/${deviceId}/action/dropCallRoute/${slot}`, null, token);
+      setStep('call', 'done');
+      log('✅ Dropped current call.', 'success');
+
+      // 4 – Reset connection
+      setStep('reset', 'run');
+      await req('GET', `/device/${deviceId}/action/removeContext`, null, token);
+      setStep('reset', 'done');
+      log('✅ Reset connection.', 'success');
+
+      // 5 – Add new static groups
+      setStep('add', 'run');
+      log(`➕ Adding ${profile.groups.length} group(s)…`, 'info');
+      await Promise.all(profile.groups.map(async g => {
+        await req('POST', `/device/${deviceId}/talkgroup`, { group: g, slot }, token);
+        log(`   + Added ${g} → slot ${slot}`, 'info');
+      }));
+      setStep('add', 'done');
+      log(`✅ Added ${profile.groups.length} static group(s).`, 'success');
+
+      setBadge('ok', 'Success');
+      log('🎉 Profile successfully applied!', 'success');
+      toast('Profile applied!', 'ok');
+
+    } catch (e) {
+      log(`❌ Error: ${e.message}`, 'error');
+      setBadge('err', 'Failed');
+      toast('Failed to apply profile', 'err');
+      document.querySelector('.step.s-run')?.classList.replace('s-run', 's-err');
+    } finally {
+      busy = false;
+      document.getElementById('applyBtn').disabled = false;
+    }
+  }
+
+  // ── Step / badge helpers ───────────────────────────────────────────────────
+  const STEPS = ['delete', 'dynamic', 'call', 'reset', 'add'];
+
+  function resetSteps() {
+    STEPS.forEach((s, i) => {
+      const el = document.getElementById(`s-${s}`);
+      el.className = 'step';
+      el.querySelector('.step-dot').textContent = i + 1;
+    });
+  }
+
+  function setStep(name, state) {
+    const el = document.getElementById(`s-${name}`);
+    el.className = `step s-${state}`;
+    const dot = el.querySelector('.step-dot');
+    if (state === 'done') dot.textContent = '✓';
+    else if (state === 'err') dot.textContent = '✗';
+    else dot.textContent = '…';
+  }
+
+  function setBadge(type, text) {
+    const b = document.getElementById('statusBadge');
+    b.className = `badge badge-${type}`;
+    b.textContent = text;
+  }
+
+  // ── Log helpers ────────────────────────────────────────────────────────────
+  function log(msg, type = 'info') {
+    const c = document.getElementById('log');
+    const ts = new Date().toTimeString().slice(0,8);
+    const cls = type === 'success' ? 'c-success' : type === 'error' ? 'c-error' : 'c-info';
+    const row = document.createElement('div');
+    row.className = 'log-row';
+    row.innerHTML = `<span class="log-ts">${ts}</span><span class="${cls}">${esc(msg)}</span>`;
+    c.appendChild(row);
+    c.scrollTop = c.scrollHeight;
+  }
+
+  function logSep() {
+    const c = document.getElementById('log');
+    const d = document.createElement('div');
+    d.className = 'log-sep';
+    c.appendChild(d);
+  }
+
+  function clearLog() { document.getElementById('log').innerHTML = ''; }
+
+  // ── Toast ──────────────────────────────────────────────────────────────────
+  function toast(msg, type = 'ok') {
+    const c = document.getElementById('toasts');
+    const el = document.createElement('div');
+    el.className = `toast toast-${type}`;
+    el.textContent = msg;
+    c.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
+  // ── Utilities ──────────────────────────────────────────────────────────────
+  function val(id) { return document.getElementById(id).value; }
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  init();
+</script>
+</body>
+</html>
