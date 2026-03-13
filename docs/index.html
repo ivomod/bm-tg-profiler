@@ -362,25 +362,24 @@
     <div class="card">
       <div class="card-title">⚙️ Connection Settings</div>
       <div class="form-group">
-        <label>Device ID</label>
-        <div class="add-row" style="margin-bottom:0.4rem">
-          <select id="deviceSelect" onchange="onDeviceSelect()" style="flex:1"></select>
-          <button class="btn btn-secondary btn-sm" id="fetchDevicesBtn" onclick="fetchMyDevices()" title="Fetch devices from your BrandMeister account">🔄</button>
-        </div>
-        <div class="help">Click 🔄 to fetch your BM devices using your callsign.</div>
-      </div>
-      <div class="form-group">
-        <label>Callsign</label>
-        <input id="callsign" type="text" placeholder="e.g. SP9ZEN" style="text-transform:uppercase" />
-        <div class="help">Used to filter your devices when clicking 🔄.</div>
-      </div>
-      <div class="form-group">
-        <label>API Token</label>
+        <label>Step 1 — API Token</label>
         <div class="input-wrap">
           <input id="token" type="password" placeholder="Your BrandMeister API token" />
           <button class="eye-btn" onclick="toggleToken()" title="Show/hide token">👁</button>
         </div>
         <div class="help"><a href="https://news.brandmeister.network/introducing-user-api-keys/" target="_blank">Get your API token →</a></div>
+      </div>
+      <div class="form-group">
+        <label>Step 2 — Your Callsign</label>
+        <input id="callsign" type="text" placeholder="e.g. SP9ZEN" style="text-transform:uppercase" />
+      </div>
+      <div class="form-group">
+        <label>Step 3 — Device ID</label>
+        <div class="add-row">
+          <select id="deviceSelect" onchange="onDeviceSelect()" style="flex:1"></select>
+          <button class="btn btn-secondary btn-sm" id="fetchDevicesBtn" onclick="fetchMyDevices()" title="Fetch devices from your BrandMeister account">🔄 Fetch</button>
+        </div>
+        <div class="help">Enter callsign first, then click 🔄 Fetch to load your devices.</div>
       </div>
       <div class="form-group">
         <label>Time Slot</label>
