@@ -1,0 +1,22 @@
+---
+description: Git commit authorship and message conventions for this repo
+alwaysApply: true
+---
+
+# Git Commit Rules
+
+## Author
+Always use this author for every commit in this repo:
+```
+Ivo M <ivomod@users.noreply.github.com>
+```
+
+Set it explicitly on every commit:
+```bash
+git commit --author="Ivo M <ivomod@users.noreply.github.com>" -m "..."
+```
+
+## Commit Messages
+- Do NOT add `Co-authored-by: Cursor` or any Cursor-related trailers
+- Do NOT add `Made-with: Cursor` or any similar lines
+- Keep messages clean: subject line only, or subject + body with no AI tool footers
