@@ -121,6 +121,7 @@ No installation required — it runs entirely in your browser and calls the Bran
 
 - **Connection Settings** — Enter your Device ID, API token, and time slot. All values are persisted in browser `localStorage` and restored on every visit.
 - **Profile Manager** — Create and manage multiple named profiles, each containing a list of talk group numbers. Profiles are stored in `localStorage` and survive page reloads.
+- **Dark / Light mode** — Toggle between dark and light themes using the button in the top-right corner of the page. The preference is saved in `localStorage` and applied automatically on the next visit.
 - **One-click Apply** — Selecting a profile and clicking Apply runs the full 5-step sequence with a live progress tracker and timestamped activity log:
   1. Delete all existing static groups
   2. Drop dynamic groups
