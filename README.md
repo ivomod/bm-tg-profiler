@@ -119,7 +119,7 @@ No installation required — it runs entirely in your browser and calls the Bran
 
 ## Features
 
-- **Connection Settings** — Enter your Device ID, API token, and time slot. All values are persisted in browser `localStorage` and restored on every visit. Previously used Device IDs are saved in a dropdown for quick selection; individual entries can be removed with the 🗑️ button. Default time slot is **Slot 0 (simplex)**.
+- **Connection Settings** — Enter your Device ID, API token, and time slot. All values are persisted in browser `localStorage` and restored on every visit. Click **🔄** to automatically fetch all devices linked to your BrandMeister account — the dropdown is populated with each device's callsign, link name, and ID. Previously used Device IDs are also saved in the dropdown for quick selection; individual entries can be removed with the 🗑️ button. Default time slot is **Slot 0 (simplex)**.
 - **Profile Manager** — Create and manage multiple named profiles, each containing a list of talk group numbers. Profiles are stored in `localStorage` and survive page reloads.
 - **Dark / Light mode** — Toggle between dark and light themes using the button in the top-right corner of the page. The preference is saved in `localStorage` and applied automatically on the next visit.
 - **Talk group names** — For each talk group number, the name is automatically fetched from the BrandMeister API (`api.brandmeister.network/v2/talkgroup/{id}`) and displayed alongside the number in profile cards, the edit modal, the current groups panel, and the activity log. Names are cached in `localStorage` for 24 hours to avoid repeated requests.
