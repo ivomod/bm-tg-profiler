@@ -370,6 +370,11 @@
         <div class="help">Click 🔄 to fetch your BM devices, or enter a device ID manually. New IDs are saved on Save Settings.</div>
       </div>
       <div class="form-group">
+        <label>Callsign</label>
+        <input id="callsign" type="text" placeholder="e.g. SP9ZEN" style="text-transform:uppercase" />
+        <div class="help">Used to filter your devices when clicking 🔄.</div>
+      </div>
+      <div class="form-group">
         <label>API Token</label>
         <div class="input-wrap">
           <input id="token" type="password" placeholder="Your BrandMeister API token" />
@@ -568,8 +573,9 @@
     loadTgCache();
     savedDevices = JSON.parse(localStorage.getItem('bm_devices') || '[]');
     const s = loadSettings();
-    document.getElementById('token').value = s.token || '';
-    document.getElementById('slot').value  = s.slot  || '0';
+    document.getElementById('callsign').value = (s.callsign || '').toUpperCase();
+    document.getElementById('token').value    = s.token || '';
+    document.getElementById('slot').value     = s.slot  || '0';
     renderDeviceSelect(s.deviceId || '');
     document.getElementById('deviceId').value = s.deviceId || '';
     profiles = JSON.parse(localStorage.getItem('bm_profiles') || '[]');
@@ -590,6 +596,7 @@
     }
     localStorage.setItem('bm_settings', JSON.stringify({
       deviceId,
+      callsign: val('callsign').toUpperCase(),
       token: val('token'),
       slot:  val('slot'),
     }));
@@ -629,25 +636,11 @@
     toast(`Removed ${deviceId} from saved devices`, 'ok');
   }
 
-  function decodeJwt(token) {
-    try {
-      const payload = token.split('.')[1];
-      if (!payload) return null;
-      return JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
-    } catch { return null; }
-  }
-
   async function fetchMyDevices() {
-    const token = val('token').trim();
-    if (!token) { toast('Enter your API token first', 'err'); return; }
-
-    // Extract callsign from JWT so we can filter the device list client-side
-    const jwt = decodeJwt(token);
-    const callsign = jwt?.callsign || jwt?.sub || null;
-    if (!callsign) {
-      toast('Could not read callsign from token — enter Device ID manually', 'err');
-      return;
-    }
+    const token    = val('token').trim();
+    const callsign = val('callsign').trim().toUpperCase();
+    if (!token)    { toast('Enter your API token first', 'err'); return; }
+    if (!callsign) { toast('Enter your Callsign first', 'err'); return; }
 
     const btn = document.getElementById('fetchDevicesBtn');
     btn.disabled = true;
