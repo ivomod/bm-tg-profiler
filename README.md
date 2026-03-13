@@ -129,7 +129,8 @@ No installation required — it runs entirely in your browser and calls the Bran
   4. Reset connection
   5. Set new static groups
 - **View Current Groups** — Inspect which static groups are currently configured on the device without applying any changes.
-- **Import / Export** — Import talk groups from a JSON profile file (`{"static_groups": [...]}`) and export any profile back to JSON.
+- **Import / Export (single profile)** — Import talk groups from a JSON profile file (`{"static_groups": [...]}`) by pasting JSON or loading a file from disk. Export any profile back to JSON.
+- **Import / Export (all profiles)** — Export all profiles at once to a `bm-profiles.json` file for backup or transfer. Import that file on any device to restore all profiles in one step. Importing all profiles will replace existing ones — a confirmation prompt is shown before overwriting.
 
 ## Usage
 

@@ -317,6 +317,13 @@
 
     .row-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.85rem; }
 
+    .profiles-toolbar {
+      display: flex; gap: 0.4rem;
+      margin-bottom: 0.85rem;
+      padding-bottom: 0.85rem;
+      border-bottom: 1px solid var(--border);
+    }
+
     footer {
       text-align: center;
       padding: 1.5rem 2rem;
@@ -376,6 +383,10 @@
       <div class="card-title">
         <span>📋 Profiles</span>
         <button class="btn btn-secondary btn-sm" onclick="openCreate()">+ New</button>
+      </div>
+      <div class="profiles-toolbar">
+        <button class="btn btn-ghost btn-sm" onclick="exportAllProfiles()" title="Export all profiles to a JSON file">📤 Export All</button>
+        <button class="btn btn-ghost btn-sm" onclick="importAllProfiles()" title="Import profiles from a JSON file (replaces all existing)">📥 Import All</button>
       </div>
       <div id="profileList" class="profile-list"></div>
     </div>
@@ -444,12 +455,13 @@
     </div>
     <div class="divider"></div>
     <div class="form-group">
-      <label>Import from JSON</label>
+      <label>Import talk groups from JSON</label>
       <div class="add-row">
         <input id="importJson" type="text" placeholder='{"static_groups":[260,260014,…]}' />
-        <button class="btn btn-secondary" onclick="importJson()">Import</button>
+        <button class="btn btn-secondary" onclick="importJson()">Paste</button>
+        <button class="btn btn-secondary" onclick="loadTgFromFile()" title="Load from a JSON file on disk">📁 File</button>
       </div>
-      <div class="help">Paste a profile JSON or just an array of numbers.</div>
+      <div class="help">Paste JSON or load a profile file from disk.</div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
@@ -667,6 +679,58 @@
   }
 
   function persist() { localStorage.setItem('bm_profiles', JSON.stringify(profiles)); }
+
+  function exportAllProfiles() {
+    if (!profiles.length) { toast('No profiles to export', 'err'); return; }
+    const blob = new Blob([JSON.stringify({ profiles }, null, 2)], { type: 'application/json' });
+    const a = Object.assign(document.createElement('a'), {
+      href: URL.createObjectURL(blob),
+      download: 'bm-profiles.json',
+    });
+    a.click(); URL.revokeObjectURL(a.href);
+    toast(`Exported ${profiles.length} profile(s)`, 'ok');
+  }
+
+  function importAllProfiles() {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = '.json,application/json';
+    input.onchange = async () => {
+      const file = input.files[0];
+      if (!file) return;
+      try {
+        const data = JSON.parse(await file.text());
+        const incoming = data.profiles || (Array.isArray(data) ? data : null);
+        if (!Array.isArray(incoming)) { toast('Invalid file format', 'err'); return; }
+        if (!confirm(`This will replace all ${profiles.length} existing profile(s) with ${incoming.length} profile(s) from the file. Continue?`)) return;
+        profiles = incoming;
+        persist(); renderProfiles();
+        toast(`Imported ${incoming.length} profile(s)`, 'ok');
+      } catch { toast('Invalid JSON file', 'err'); }
+    };
+    input.click();
+  }
+
+  function loadTgFromFile() {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = '.json,application/json';
+    input.onchange = async () => {
+      const file = input.files[0];
+      if (!file) return;
+      try {
+        const parsed = JSON.parse(await file.text());
+        const arr = Array.isArray(parsed) ? parsed : (parsed.static_groups || []);
+        let added = 0;
+        arr.forEach(g => {
+          const n = parseInt(g);
+          if (!isNaN(n) && n > 0 && !tempGroups.includes(n)) { tempGroups.push(n); added++; }
+        });
+        tempGroups.sort((a,b) => a-b);
+        renderModalTags();
+        toast(`Loaded ${added} talk group(s) from file`, 'ok');
+      } catch { toast('Invalid JSON file', 'err'); }
+    };
+    input.click();
+  }
 
   // ── API ────────────────────────────────────────────────────────────────────
   async function req(method, path, body, token) {
