@@ -4,13 +4,13 @@ BrandMeister Talk Group Profile Manager — apply saved talk group presets to yo
 
 ---
 
-## 0. Disclaimer
+## Disclaimer
 
 The author takes no responsibility for any misconfiguration of DMR devices or BrandMeister account settings. **Use at your own risk.**
 
 ---
 
-## 1. Introduction & Rationale
+## Introduction & Rationale
 
 **Key concepts:**
 
@@ -27,7 +27,7 @@ This project lets you define and store named **profiles** (presets) containing l
 
 ---
 
-## 2. Web App
+## Web App
 
 A browser-based GUI with no installation required, available at:
 
@@ -92,7 +92,7 @@ webapp/
 
 ---
 
-## 3. CLI
+## CLI
 
 A Python command-line tool for applying profiles from a terminal or scripts. Lives in `cli/`.
 
@@ -208,6 +208,6 @@ cli/
 
 ---
 
-## 4. License
+## License
 
 This project is licensed under the **MIT License**. See the [`LICENSE`](LICENSE) file for details.
