@@ -5,6 +5,8 @@ let profiles = [];
 let savedDevices = [];
 let tgCache = {};
 let currentGroups = [];
+let currentGroupsData = [];
+let currentGroupsSlot = null;
 let selectedId = null;
 let editingId = null;
 let tempGroups = [];
@@ -46,6 +48,7 @@ function applyLang() {
       : t('no_profile_selected');
   }
   document.getElementById('statusBadge').textContent = t(currentBadgeKey || 'badge_idle');
+  renderCurrentCard();
 }
 
 function setLang(lang) {
@@ -422,6 +425,27 @@ function loadTgFromFile() {
   input.click();
 }
 
+// ── Current groups card ────────────────────────────────────────────────────
+function renderCurrentCard() {
+  if (currentGroupsSlot === null) return;
+  const slot = currentGroupsSlot;
+  const groups = currentGroupsData;
+  document.getElementById('currentCardTitle').textContent = t('current_card_title', { slot });
+  const content = document.getElementById('currentContent');
+  if (!groups.length) {
+    content.innerHTML = `<div class="empty">${t('no_groups_on_slot', { slot })}</div>`;
+  } else {
+    content.innerHTML = `
+      <div class="help" style="margin-bottom:0.5rem">${t('groups_count_on_slot', { n: groups.length, slot })}</div>
+      <div class="group-chips">
+        ${groups.map(g => {
+          const name = tgCache[g.talkgroup]?.name;
+          return `<span class="chip">${g.talkgroup}${name ? ` <span class="tg-name" style="max-width:none"> · ${esc(name)}</span>` : ''}</span>`;
+        }).join('')}
+      </div>`;
+  }
+}
+
 // ── API ────────────────────────────────────────────────────────────────────
 async function req(method, path, body, token) {
   const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
@@ -442,26 +466,12 @@ async function fetchCurrentGroups() {
     const all = await r.json();
     const groups = all.filter(g => parseInt(g.slot) === slot);
     const card = document.getElementById('currentCard');
-    const content = document.getElementById('currentContent');
-    document.getElementById('currentCardTitle').textContent = t('current_card_title', { slot });
     currentGroups = groups.map(g => parseInt(g.talkgroup));
+    currentGroupsData = groups;
+    currentGroupsSlot = slot;
     card.style.display = 'block';
-    if (!groups.length) {
-      content.innerHTML = `<div class="empty">${t('no_groups_on_slot', { slot })}</div>`;
-    } else {
-      const renderChips = () => {
-        content.innerHTML = `
-          <div class="help" style="margin-bottom:0.5rem">${t('groups_count_on_slot', { n: groups.length, slot })}</div>
-          <div class="group-chips">
-            ${groups.map(g => {
-              const name = tgCache[g.talkgroup]?.name;
-              return `<span class="chip">${g.talkgroup}${name ? ` <span class="tg-name" style="max-width:none"> · ${esc(name)}</span>` : ''}</span>`;
-            }).join('')}
-          </div>`;
-      };
-      renderChips();
-      prefetchAndRender(groups.map(g => g.talkgroup), renderChips);
-    }
+    renderCurrentCard();
+    prefetchAndRender(groups.map(g => g.talkgroup), renderCurrentCard);
     log(t('log_found_groups', { n: groups.length, slot }), 'success');
   } catch (e) {
     log(t('log_err_generic', { msg: e.message }), 'error');
