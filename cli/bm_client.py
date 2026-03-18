@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Ivo Modrinić
+# Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from logger import logger

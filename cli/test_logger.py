@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Ivo Modrinić
+# Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
 import pytest
 from unittest.mock import patch
 from logger import Logger, Colors, _EMOJI_RE

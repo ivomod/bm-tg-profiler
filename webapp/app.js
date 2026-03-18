@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 Ivo Modrinić
+ * Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ */
+
 const API = 'https://api.brandmeister.network/v2';
 const TG_CACHE_TTL = 86400000; // 24 hours
 
